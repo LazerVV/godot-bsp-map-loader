@@ -1,0 +1,60 @@
+@tool
+extends EditorPlugin
+
+var dock
+var bsp_loader
+
+func _enter_tree():
+	print("BSP plugin entered tree")
+	var dock_scene = preload("res://addons/bsp_loader/bsp_loader_dock.tscn")
+	dock = dock_scene.instantiate()
+	bsp_loader = preload("res://addons/bsp_loader/bsp_loader.gd").new()
+
+	add_control_to_dock(DOCK_SLOT_LEFT_UR, dock)
+	dock.connect("load_bsp", Callable(self, "_on_load_bsp"))
+	
+	# Disconnect existing signals to prevent duplicates
+	if bsp_loader.is_connected("progress_updated", Callable(dock, "_on_progress_updated")):
+		bsp_loader.disconnect("progress_updated", Callable(dock, "_on_progress_updated"))
+	
+	# Connect progress signal
+	if bsp_loader.has_signal("progress_updated"):
+		var error = bsp_loader.connect("progress_updated", Callable(dock, "_on_progress_updated"))
+		if error == OK:
+			print("Connected progress_updated signal")
+		else:
+			push_error("Failed to connect progress_updated: " + str(error))
+	else:
+		push_error("progress_updated signal not found in bsp_loader")
+	
+	# Debug dock setup
+	print("Dock instance type: ", dock.get_class())
+	print("Dock has script: ", dock.get_script() != null)
+
+func _exit_tree():
+	if bsp_loader and bsp_loader.is_connected("progress_updated", Callable(dock, "_on_progress_updated")):
+		bsp_loader.disconnect("progress_updated", Callable(dock, "_on_progress_updated"))
+	if dock:
+		remove_control_from_docks(dock)
+		dock.free()
+
+func _on_load_bsp(file_path: String):
+	print("Loading BSP: ", file_path)
+	var map_node = bsp_loader.load_bsp(file_path)
+	if map_node:
+		var root = get_tree().edited_scene_root
+		if not root:
+			root = Node3D.new()
+			root.name = "SceneRoot"
+			get_tree().set_edited_scene_root(root)
+		root.add_child(map_node)
+		map_node.owner = root
+		call_deferred("_update_editor", map_node)
+	else:
+		print("Failed to load BSP file: ", file_path)
+
+func _update_editor(map_node: Node3D):
+	get_editor_interface().get_selection().clear()
+	get_editor_interface().get_selection().add_node(map_node)
+	# Camera reset removed to preserve user position
+	print("BSP loaded, map node selected")
