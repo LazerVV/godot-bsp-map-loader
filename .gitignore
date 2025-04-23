@@ -1,1 +1,40 @@
+# Godot-specific
+.import/
+.godot/
+.export/
+*.godot-export.cfg
+*.godot-import.cfg
+*.import
+*.converted.scn
+*.tmp
+*.cache
+*.log
+*.mono/
+
+# Editor-specific junk
+*.mono
+*.csproj
+*.sln
+*.user
+*.vs/
+*.pidb
+*.mdb
+*.pdb
+*.suo
+
+# File-specific garbage
 *.uid
+*.db
+*.cfg~*
+*.tres~*
+*.tscn~*
+*.res~*
+
+# OS/IDE noise
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+*.swp
+*.bak
+*.tmp
