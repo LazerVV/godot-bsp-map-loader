@@ -5,3 +5,5 @@
 ### THIS PROJECT IS UNFINISHED, NOT 100% USABLE CURRENTLY
 
 Only tested for Xonotic
+
+Use Grok-3 for development, paste it Quadot Arena code and if required Netradiant or Xonotic codebase.
