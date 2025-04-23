@@ -342,8 +342,8 @@ func load_bsp(path: String) -> Node3D:
 								col /= sum
 							patch_vertices.append(pos)
 							patch_normals.append(nor)
-							patch_uvs.append(uv / tex_size)
-							patch_luvs.append(luv / tex_size)
+							patch_uvs.append(uv)
+							patch_luvs.append(luv)
 							patch_colors.append(col)
 					# Generate indices for quad grid (two triangles per quad)
 					var triangle_count = 0
@@ -394,6 +394,14 @@ func load_bsp(path: String) -> Node3D:
 										BezierMesh.bezier_collider_mesh(owner_shape_id, collider, face_idx, patch_number, control)
 										patch_number += 1
 				else:
+					# Calculate tangent and binormal for planar projection UVs
+					var normal = face.normal
+					var up_vector = Vector3.UP
+					if abs(normal.dot(Vector3.UP)) > 0.99:
+						up_vector = Vector3.FORWARD
+					var tangent = normal.cross(up_vector).normalized()
+					var binormal = normal.cross(tangent).normalized()
+					var uv_scale = 64.0 * scale_factor  # Quake 3 texture scale adjusted for meters
 					for i_idx in range(0, face.num_mv, 3):
 						var a_idx = meshverts[face.first_mv + i_idx]
 						var b_idx = meshverts[face.first_mv + i_idx + 1]
@@ -410,16 +418,17 @@ func load_bsp(path: String) -> Node3D:
 							mat_data.id.append(mat_data.v.size())
 							mat_data.v.append(vert.pos)
 							mat_data.n.append(vert.normal)
-							var tex_size = Vector2(256, 256)
-							if materials.has(sh_name) and materials[sh_name].albedo_texture:
-								tex_size = materials[sh_name].albedo_texture.get_size()
-							if tex_size.x == 0 or tex_size.y == 0:
-								tex_size = Vector2(256, 256)
-								print("Invalid texture size for shader %s, using fallback: %s" % [sh_name, tex_size])
-							mat_data.uv.append(vert.uv / tex_size)
-							mat_data.luv.append(vert.luv / tex_size)
+							# Planar projection UVs
+							var u = vert.pos.dot(tangent) / uv_scale
+							var v = vert.pos.dot(binormal) / uv_scale
+							var computed_uv = Vector2(u, v)
+							mat_data.uv.append(computed_uv)
+							mat_data.luv.append(vert.luv)  # Keep lightmap UVs as-is
 							mat_data.color.append(vert.color)
 							col_vertices.append(vert.pos)
+							# Debug UVs
+							if i_idx == 0 and mv_idx == vertex_indices[0]:
+								print("Face %d UV: pos=%s, tangent=%s, binormal=%s, uv=%s" % [face_idx, vert.pos, tangent, binormal, computed_uv])
 			var surface_idx = 0
 			for sh_name in ent_by_mat.keys():
 				var data = ent_by_mat[sh_name]

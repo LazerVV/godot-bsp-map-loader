@@ -54,6 +54,7 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 	for sh in used_shaders:
 		var shader_name = sh.name
 		var matched_textures = match_texture(shader_name, suffixes)
+		print("MATCHED TEXTURES: "+str(matched_textures))
 		for suffix in matched_textures:
 			var dst = "res://assets/textures/" + shader_name + suffix + ".png"
 			DirAccess.make_dir_recursive_absolute(dst.get_base_dir())
@@ -245,11 +246,15 @@ func match_texture(shader_name: String, suffixes: Array[String]) -> Dictionary:
 				for result in results:
 					var cleaned_result = result.get_string().strip_edges()
 					for ext in valid_extensions:
-						for suffix in suffixes + [""]:
-							var mysubstr = suffix + "." + ext
-							if cleaned_result.ends_with(mysubstr):
+						var ends_with_suffix = false
+						for suffix in suffixes:
+							if cleaned_result.ends_with(suffix + "." + ext):
+								ends_with_suffix = true
 								matched_textures[suffix] = cleaned_result
 								do_crazy = false
+						if not ends_with_suffix and cleaned_result.ends_with("." + ext):
+							matched_textures[""] = cleaned_result
+							do_crazy = false
 	
 	if matched_textures.is_empty():
 		print("SHADER NOT FOUND!!!: (%s): %s" % [shader_name, pattern])
