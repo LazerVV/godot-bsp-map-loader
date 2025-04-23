@@ -1,4 +1,7 @@
 # godot-bsp-map-loader
 
+![Image](https://github.com/user-attachments/assets/e38526b6-bf77-47ae-b9b7-ae0dcd4a6c55)
 
-### THIS PROJECT IS UNFINISHED, NOT USABLE CURRENTLY
+### THIS PROJECT IS UNFINISHED, NOT 100% USABLE CURRENTLY
+
+Only tested for Xonotic
