@@ -315,8 +315,6 @@ func load_bsp(path: String) -> Node3D:
 				var mat_data = ent_by_mat[sh_name]
 				var v_ofs = mat_data.v.size()
 				if face.surface_type == MST_PATCH:
-					if debug_logging:
-						print(">>> START processing PATCH face index: %d, shader: %s" % [face_idx, sh_name])
 					var w: int = face.size_u
 					var h: int = face.size_v
 					if w < 2 or h < 2 or face.num_verts != w * h:
@@ -335,8 +333,6 @@ func load_bsp(path: String) -> Node3D:
 										print("Invalid UV for control point face %d [%d,%d]: uv=%s, skipping patch" % [face_idx, i, j, vert.uv])
 									valid_patch = false
 									break
-								if debug_logging:
-									print("Control point face %d [%d,%d]: uv=%s, luv=%s" % [face_idx, i, j, vert.uv, vert.luv])
 						if not valid_patch:
 							break
 					if not valid_patch:
@@ -439,8 +435,6 @@ func load_bsp(path: String) -> Node3D:
 							patch_luvs.append(luv)
 							patch_colors.append(col)
 							vertex_count += 1
-							if vertex_count == 1 and debug_logging:
-								print("Patch face %d vertex[0,0]: pos=%s, nor=%s, uv=%s, luv=%s" % [face_idx, pos, nor, uv, luv])
 						if not valid_patch:
 							break
 					if not valid_patch:
@@ -501,8 +495,6 @@ func load_bsp(path: String) -> Node3D:
 										var owner_shape_id = collider.create_shape_owner(collider)
 										BezierMesh.bezier_collider_mesh(owner_shape_id, collider, face_idx, patch_number, control)
 										patch_number += 1
-					if debug_logging:
-						print("<<< END processing PATCH face index: %d" % face_idx)
 				else:
 					# Non-patch faces
 					var normal = face.normal
@@ -541,8 +533,6 @@ func load_bsp(path: String) -> Node3D:
 							mat_data.color.append(vert.color)
 							if sh_name not in non_solid_shaders:
 								col_vertices.append(vert.pos)
-							if i_idx == 0 and mv_idx == vertex_indices[0] and debug_logging:
-								print("Face %d UV: pos=%s, uv=%s" % [face_idx, vert.pos, scaled_uv])
 			var surface_idx = 0
 			for sh_name in ent_by_mat.keys():
 				var data = ent_by_mat[sh_name]
@@ -562,7 +552,9 @@ func load_bsp(path: String) -> Node3D:
 					var mat = materials[sh_name]
 					if data.lm_index >= 0 and lightmap_textures.has(data.lm_index):
 						var lm_mat = mat.duplicate()
+						# WARNING: this was TEXTURE_AO before, I just changed it to TEXTURE_ALBEDO so the code runs at all because AO doesn't exist. This is probably wrong. Fix this pls.
 						lm_mat.set_texture(BaseMaterial3D.TEXTURE_ALBEDO, lightmap_textures[data.lm_index])
+						lm_mat.ao_enabled = true
 						lm_mat.uv2_scale = Vector3(1.0, 1.0, 1.0)
 						ent_mesh.surface_set_material(surface_idx, lm_mat)
 					else:
@@ -672,6 +664,7 @@ func load_bsp(path: String) -> Node3D:
 					concave_shape.set_faces(faces_array)
 					col_shape.shape = concave_shape
 					col_shape.name = "TriggerShape"
+					col_shape.position = -center  # Offset to align with node's position
 					node.add_child(col_shape)
 					col_shape.owner = root
 					# Create debug mesh
@@ -687,6 +680,7 @@ func load_bsp(path: String) -> Node3D:
 					debug_array_mesh.surface_set_material(0, debug_mat)
 					debug_mesh.mesh = debug_array_mesh
 					debug_mesh.name = "DebugTriggerMesh"
+					debug_mesh.position = -center  # Offset to align with node's position
 					node.add_child(debug_mesh)
 					debug_mesh.owner = root
 					# Update AABB
@@ -698,7 +692,34 @@ func load_bsp(path: String) -> Node3D:
 						print("Added trigger shape for entity: %s with %d vertices, center: %s" % [node_name, faces_array.size(), center])
 				else:
 					if debug_logging:
-						print("Failed to generate trigger vertices (%d, mod 3 = %d) for entity: %s" % [faces_array.size(), faces_array.size() % 3, node_name])
+						print("Failed to generate trigger vertices (%d, mod 3 = %d) for entity: %s, falling back to bounding box" % [faces_array.size(), faces_array.size() % 3, node_name])
+					# Fallback to bounding box
+					var col_shape = CollisionShape3D.new()
+					var box_shape = BoxShape3D.new()
+					var extents = (model.maxs - model.mins) / 2.0
+					box_shape.extents = extents
+					col_shape.shape = box_shape
+					col_shape.name = "TriggerShape"
+					col_shape.position = Vector3.ZERO  # Already centered by node.position
+					node.add_child(col_shape)
+					col_shape.owner = root
+					# Debug mesh for bounding box
+					var debug_mesh = MeshInstance3D.new()
+					var debug_array_mesh = ArrayMesh.new()
+					var cube_mesh = BoxMesh.new()
+					cube_mesh.size = extents * 2.0
+					debug_array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, cube_mesh.get_mesh_arrays())
+					var debug_mat = StandardMaterial3D.new()
+					debug_mat.albedo_color = Color(1, 0, 0, 0.5)
+					debug_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					debug_array_mesh.surface_set_material(0, debug_mat)
+					debug_mesh.mesh = debug_array_mesh
+					debug_mesh.name = "DebugTriggerMesh"
+					debug_mesh.position = Vector3.ZERO
+					node.add_child(debug_mesh)
+					debug_mesh.owner = root
+					if debug_logging:
+						print("Added fallback box trigger shape for entity: %s, extents: %s" % [node_name, extents])
 			else:
 				if debug_logging:
 					print("No model found for trigger entity: %s" % node_name)
@@ -877,11 +898,11 @@ func extract_brush_vertices(model: Dictionary, brushes: Array[Dictionary], brush
 			if debug_logging:
 				print("No vertices for brush %d, planes: %s" % [brush_idx, brush_planes])
 			continue
-		var hull_vertices = convex_hull(brush_vertices)
+		var hull_vertices = convex_hull(brush_vertices, model.mins, model.maxs)
 		for i in range(0, hull_vertices.size() - 2, 3):
-			var v0 = transform_vector(hull_vertices[i]) * scale_factor
-			var v1 = transform_vector(hull_vertices[i + 1]) * scale_factor
-			var v2 = transform_vector(hull_vertices[i + 2]) * scale_factor
+			var v0 = hull_vertices[i]
+			var v1 = hull_vertices[i + 1]
+			var v2 = hull_vertices[i + 2]
 			if v0.distance_to(v1) > 0.001 and v1.distance_to(v2) > 0.001 and v2.distance_to(v0) > 0.001:
 				vertices.append(v0)
 				vertices.append(v1)
@@ -948,24 +969,49 @@ func intersect_planes(brush_planes: Array[Dictionary]) -> PackedVector3Array:
 			print("No vertices generated from plane intersections")
 	return vertices
 
-func convex_hull(points: PackedVector3Array) -> PackedVector3Array:
+func convex_hull(points: PackedVector3Array, mins: Vector3, maxs: Vector3) -> PackedVector3Array:
+	# Validate input points
 	if points.size() < 4:
 		if debug_logging:
-			print("Convex hull: too few points (%d), returning original" % points.size())
-		return points
+			print("Convex hull: too few points (%d), falling back to bounding box" % points.size())
+		return create_bounding_box_vertices(mins, maxs)
+	
+	# Remove duplicate points
+	var unique_points = PackedVector3Array()
+	for p in points:
+		if not unique_points.has(p):
+			unique_points.append(p)
+	
+	if unique_points.size() < 4:
+		if debug_logging:
+			print("Convex hull: too few unique points (%d), falling back to bounding box" % unique_points.size())
+		return create_bounding_box_vertices(mins, maxs)
+	
+	# Check for coplanarity
+	var coplanar = true
+	if unique_points.size() >= 4:
+		var p0 = unique_points[0]
+		var p1 = unique_points[1]
+		var p2 = unique_points[2]
+		var normal = (p1 - p0).cross(p2 - p0).normalized()
+		for i in range(3, unique_points.size()):
+			var p = unique_points[i]
+			var dist = (p - p0).dot(normal)
+			if abs(dist) > 0.001:
+				coplanar = false
+				break
+	
+	if coplanar:
+		if debug_logging:
+			print("Convex hull: points are coplanar, falling back to bounding box")
+		return create_bounding_box_vertices(mins, maxs)
 	
 	# Use Geometry3D.compute_convex_mesh_points to get hull points
-	var hull_points = Geometry3D.compute_convex_mesh_points(points)
+	var hull_points = Geometry3D.compute_convex_mesh_points(unique_points)
 	if hull_points.size() < 4:
 		if debug_logging:
-			print("Failed to generate convex hull, falling back to raw vertices")
-		var fallback = PackedVector3Array()
-		for i in range(0, min(points.size(), 9), 3):
-			if i + 2 < points.size():
-				fallback.append(points[i])
-				fallback.append(points[i + 1])
-				fallback.append(points[i + 2])
-		return fallback
+			print("Failed to generate convex hull, falling back to bounding box")
+		return create_bounding_box_vertices(mins, maxs)
 	
 	# Triangulate the hull points into faces for ConcavePolygonShape3D
 	var hull_vertices = PackedVector3Array()
@@ -982,11 +1028,31 @@ func convex_hull(points: PackedVector3Array) -> PackedVector3Array:
 	
 	# Fallback if triangulation fails
 	if debug_logging:
-		print("Failed to triangulate convex hull, falling back to raw vertices")
-	var fallback = PackedVector3Array()
-	for i in range(0, min(points.size(), 9), 3):
-		if i + 2 < points.size():
-			fallback.append(points[i])
-			fallback.append(points[i + 1])
-			fallback.append(points[i + 2])
-	return fallback
+		print("Failed to triangulate convex hull, falling back to bounding box")
+	return create_bounding_box_vertices(mins, maxs)
+
+func create_bounding_box_vertices(mins: Vector3, maxs: Vector3) -> PackedVector3Array:
+	var vertices = PackedVector3Array()
+	# Define the 8 corners of the bounding box
+	var corners = [
+		Vector3(mins.x, mins.y, mins.z),
+		Vector3(maxs.x, mins.y, mins.z),
+		Vector3(maxs.x, maxs.y, mins.z),
+		Vector3(mins.x, maxs.y, mins.z),
+		Vector3(mins.x, mins.y, maxs.z),
+		Vector3(maxs.x, mins.y, maxs.z),
+		Vector3(maxs.x, maxs.y, maxs.z),
+		Vector3(mins.x, maxs.y, maxs.z)
+	]
+	# Define the 12 triangles (2 per face) of the box
+	var indices = [
+		0, 1, 2,  0, 2, 3,  # Front
+		1, 5, 6,  1, 6, 2,  # Right
+		5, 4, 7,  5, 7, 6,  # Back
+		4, 0, 3,  4, 3, 7,  # Left
+		3, 2, 6,  3, 6, 7,  # Top
+		4, 5, 1,  4, 1, 0   # Bottom
+	]
+	for i in indices:
+		vertices.append(corners[i])
+	return vertices
