@@ -8,7 +8,7 @@ Only tested for Xonotic
 
 Use Grok-3 for development, paste it Quadot Arena code and if required Netradiant or Xonotic codebase.
 
-Update: Use o3-mini Codex for dev now, it makes PRs to Github and similar intelligence than Grok-3 but works as agent and can deal with much larger codebase.
+Update: Use o3-mini Codex for dev now (needs $20 ChatGPT subscription), it makes PRs to Github and similar intelligence than Grok-3 but works as agent and can deal with much larger codebase.
 
 ### Instructions
 
