@@ -20,7 +20,7 @@ There are two ways to get working results, one way is to totally ignore shader f
 
 The second way is the "proper one" that I was working on with Grok-3 last time. There are a lot of devils in the details, as it basically requires a viable q3 shader format parser, so it didn't turn out right 100% and I gave up in the end.
 
-What also never worked right was when triggers were assymetrical and rotated. It worked fine with box-shaped boxes that were not rotated at some point. This was a thing were Grok-3 really bugged out on, and it broke it more and more, so I stopped trying to do it right for another AI to solve it with ease in future attempts. This might have left trigger boxes in an unusually bad state.
+What also never worked right was when triggers were assymetrical and rotated. It worked fine with simple box-shaped brushes that were not rotated at some point. This was a thing were Grok-3 really bugged out on, and it broke it more and more, so I stopped trying to do it right for another AI to solve it with ease in future attempts. This might have left trigger boxes in an unusually bad state.
 
 #### png convert
 This is only a simple example how to convert all dds textures supplied with xonotic to png.
