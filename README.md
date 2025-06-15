@@ -32,7 +32,7 @@ destinationdatadir=/home/l0rd/STORE/XONOTIC_DATA
 find "$sourcetexturedir" -type f -iname '*.dds' | while read -r src; do; dst="${destinationdatadir}/textures/$(realpath --relative-to="$sourcetexturedir" "$src")"; mkdir -p "$(dirname "$dst")"; convert "$src" "${dst%.*}.png"; done
 ```
 
-### How a bsp file works
+### How a bsp file works (not required to read)
 
 Maps in Quake 1 were only made of Brushes (= geometry) and entities (= spawn points, weapons, lights, 3D model position insertion points, etc). In Quake 3 they added bezier Patches as a second geometric primitive. A map will have one "worldspawn" entity, which is the entire passive map geometry, such as walls, sky, floor, etc. Triggers and func_* stuff (e.g. func_rotating, makes geometry rotate or func_door makes it move) are separate entities, because they are not totally passive. In the .map format this stuff is stored as text file in a special definition format (either Valve 220 = Quake 1, or "Brush" format = Quake 3). This .map format doesn't use mesh data, but awkward and mathematically challenging data types.
 
