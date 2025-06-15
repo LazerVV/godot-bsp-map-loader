@@ -16,3 +16,8 @@ Use Grok-3 for development, paste it Quadot Arena code and if required Netradian
 There are two ways to get working results, one way is to totally ignore shader files but then the map will lack bumpmaps and normal maps etc (which honestly, isn't really that important). This method is still implemented as fallback, it uses regex to match similar texture names to shader names. The second way is the "proper one" that I was working on with Grok-3 last time. There are a lot of devils in the details, so it didn't turn out right 100% and I gave up in the end.
 
 What also never worked right was when triggers were assymetrical and rotated. It worked fine with box-shaped boxes that were not rotated at some point. This was a thing were Grok-3 really bugged out on, and it broke it more and more, so I stopped trying to do it right for another AI to solve it with ease in future attempts. This might have left trigger boxes in an unusually bad state.
+
+#### png convert
+```
+find /usr/share/xonotic/data/ddsreal.pk3dir/textures -type f -iname '*.dds' | while read -r src; do; dst=~/STORE/XONOTIC_DATA/textures/"$(realpath --relative-to=/usr/share/xonotic/data/ddsreal.pk3dir/textures "$src")"; mkdir -p "$(dirname "$dst")"; convert "$src" "${dst%.*}.png"; done
+```
