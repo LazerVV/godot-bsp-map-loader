@@ -12,7 +12,10 @@ Use Grok-3 for development, paste it Quadot Arena code and if required Netradian
 
 1. unzip all Xonotic pk3 files and convert the textures to png format with script.
 2. Change the data directory in bsp_texture_loader.gd and perhaps elsewhere from /home/l0rd/STORE/XONOTIC_DATA to your directory
-
+3. git-clone the repo into addons/bsp_loader in your game
+4. activate plugin
+5. The bsp files in the file-tree can now be selected and opened (or cloned) as scenes, similar to e.g. glTF files (if it doesn't work instantly try import in the "Import" tab)
+   
 There are two ways to get working results, one way is to totally ignore shader files but then the map will lack bumpmaps and normal maps etc (which honestly, isn't really that important). This method is still implemented as fallback, it uses regex to match similar texture file names to shader names (which works surprisingly well, but in theory some mapper could make a shader like "myshader" and the texture it references is "concretewall" so then this method wouldn't work at all - in actuality however 98% of shader names are "concretewall-1" or such when the texture is named "concretewall"). 
 
 The second way is the "proper one" that I was working on with Grok-3 last time. There are a lot of devils in the details, as it basically requires a viable q3 shader format parser, so it didn't turn out right 100% and I gave up in the end.
