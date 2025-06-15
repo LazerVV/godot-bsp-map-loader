@@ -18,6 +18,11 @@ There are two ways to get working results, one way is to totally ignore shader f
 What also never worked right was when triggers were assymetrical and rotated. It worked fine with box-shaped boxes that were not rotated at some point. This was a thing were Grok-3 really bugged out on, and it broke it more and more, so I stopped trying to do it right for another AI to solve it with ease in future attempts. This might have left trigger boxes in an unusually bad state.
 
 #### png convert
+This is only a simple example how to convert all dds textures supplied with xonotic to png.
+
+If you are on Windows use MSYS2 and do: `pacman -Sy` then `pacman -S imagemagick unzip` to run the script.
 ```
-find /usr/share/xonotic/data/ddsreal.pk3dir/textures -type f -iname '*.dds' | while read -r src; do; dst=~/STORE/XONOTIC_DATA/textures/"$(realpath --relative-to=/usr/share/xonotic/data/ddsreal.pk3dir/textures "$src")"; mkdir -p "$(dirname "$dst")"; convert "$src" "${dst%.*}.png"; done
+sourcetexturedir=/usr/share/xonotic/data/ddsreal.pk3dir/textures
+destinationdatadir=/home/l0rd/STORE/XONOTIC_DATA
+find "$sourcetexturedir" -type f -iname '*.dds' | while read -r src; do; dst="${destinationdatadir}/textures/$(realpath --relative-to="$sourcetexturedir" "$src")"; mkdir -p "$(dirname "$dst")"; convert "$src" "${dst%.*}.png"; done
 ```
