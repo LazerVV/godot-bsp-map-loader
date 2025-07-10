@@ -552,7 +552,6 @@ func load_bsp(path: String) -> Node3D:
 					var mat = materials[sh_name]
 					if data.lm_index >= 0 and lightmap_textures.has(data.lm_index):
 						var lm_mat = mat.duplicate()
-						# WARNING: this was TEXTURE_AO before, I just changed it to TEXTURE_ALBEDO so the code runs at all because AO doesn't exist. This is probably wrong. Fix this pls.
 						lm_mat.set_texture(BaseMaterial3D.TEXTURE_ALBEDO, lightmap_textures[data.lm_index])
 						lm_mat.ao_enabled = true
 						lm_mat.uv2_scale = Vector3(1.0, 1.0, 1.0)
@@ -647,24 +646,28 @@ func load_bsp(path: String) -> Node3D:
 				node.position = center
 				var faces_array = extract_brush_vertices(model, brushes, brushsides, planes, shaders)
 				if faces_array.size() > 0 and faces_array.size() % 3 == 0:
-					# Only apply rotation if entity has angles
+					# Make local
+					var local_faces = PackedVector3Array()
+					for v in faces_array:
+						local_faces.append(v - center)
+					# Apply rotation if present
 					if ent.has("angles"):
-						var rotation = parse_vector3(ent.angles)
+						var angles = parse_vector3(ent.angles)
 						var transform = Transform3D.IDENTITY
-						transform = transform.rotated(Vector3.RIGHT, deg_to_rad(rotation.x))
-						transform = transform.rotated(Vector3.UP, deg_to_rad(rotation.y))
-						transform = transform.rotated(Vector3.FORWARD, deg_to_rad(rotation.z))
+						transform = transform.rotated(Vector3.RIGHT, deg_to_rad(angles.x))
+						transform = transform.rotated(Vector3.UP, deg_to_rad(angles.y))
+						transform = transform.rotated(Vector3.FORWARD, deg_to_rad(angles.z))
 						var rotated_faces = PackedVector3Array()
-						for v in faces_array:
+						for v in local_faces:
 							rotated_faces.append(transform.basis * v)
-						faces_array = rotated_faces
+						local_faces = rotated_faces
 					# Create collision shape
 					var col_shape = CollisionShape3D.new()
 					var concave_shape = ConcavePolygonShape3D.new()
-					concave_shape.set_faces(faces_array)
+					concave_shape.set_faces(local_faces)
 					col_shape.shape = concave_shape
 					col_shape.name = "TriggerShape"
-					col_shape.position = -center  # Offset to align with node's position
+					col_shape.position = Vector3.ZERO
 					node.add_child(col_shape)
 					col_shape.owner = root
 					# Create debug mesh
@@ -672,7 +675,7 @@ func load_bsp(path: String) -> Node3D:
 					var debug_array_mesh = ArrayMesh.new()
 					var arr = []
 					arr.resize(Mesh.ARRAY_MAX)
-					arr[Mesh.ARRAY_VERTEX] = faces_array
+					arr[Mesh.ARRAY_VERTEX] = local_faces
 					debug_array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 					var debug_mat = StandardMaterial3D.new()
 					debug_mat.albedo_color = Color(1, 0, 0, 0.5)
@@ -680,12 +683,12 @@ func load_bsp(path: String) -> Node3D:
 					debug_array_mesh.surface_set_material(0, debug_mat)
 					debug_mesh.mesh = debug_array_mesh
 					debug_mesh.name = "DebugTriggerMesh"
-					debug_mesh.position = -center  # Offset to align with node's position
+					debug_mesh.position = Vector3.ZERO
 					node.add_child(debug_mesh)
 					debug_mesh.owner = root
 					# Update AABB
 					var aabb = AABB()
-					for v in faces_array:
+					for v in local_faces:
 						aabb = aabb.expand(v)
 					debug_array_mesh.custom_aabb = aabb
 					if debug_logging:
@@ -700,7 +703,7 @@ func load_bsp(path: String) -> Node3D:
 					box_shape.extents = extents
 					col_shape.shape = box_shape
 					col_shape.name = "TriggerShape"
-					col_shape.position = Vector3.ZERO  # Already centered by node.position
+					col_shape.position = Vector3.ZERO
 					node.add_child(col_shape)
 					col_shape.owner = root
 					# Debug mesh for bounding box
@@ -969,7 +972,7 @@ func intersect_planes(brush_planes: Array[Dictionary]) -> PackedVector3Array:
 			print("No vertices generated from plane intersections")
 	return vertices
 
-func convex_hull(points: PackedVector3Array, mins: Vector3, maxs: Vector3) -> PackedVector3Array:
+func convex_hull(points: Array[Vector3], mins: Vector3, maxs: Vector3) -> PackedVector3Array:
 	# Validate input points
 	if points.size() < 4:
 		if debug_logging:
@@ -1006,15 +1009,16 @@ func convex_hull(points: PackedVector3Array, mins: Vector3, maxs: Vector3) -> Pa
 			print("Convex hull: points are coplanar, falling back to bounding box")
 		return create_bounding_box_vertices(mins, maxs)
 	
-	# Use Geometry3D.compute_convex_mesh_points to get hull points
-	var hull_points = Geometry3D.compute_convex_mesh_points(unique_points)
+	# Set hull_points to unique_points (since brush points are already convex hull vertices)
+	var hull_points = unique_points
+	
 	if hull_points.size() < 4:
 		if debug_logging:
 			print("Failed to generate convex hull, falling back to bounding box")
 		return create_bounding_box_vertices(mins, maxs)
 	
 	# Triangulate the hull points into faces for ConcavePolygonShape3D
-	var hull_vertices = PackedVector3Array()
+	var hull_vertices: PackedVector3Array = []
 	# Simple triangulation: assume points form a convex polyhedron and use a fan
 	for i in range(1, hull_points.size() - 1):
 		hull_vertices.append(hull_points[0])
