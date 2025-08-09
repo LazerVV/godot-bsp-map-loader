@@ -23,7 +23,7 @@ There is a fallback mechanism `match_texture_no_one_is_allowed_to_modify_this_fu
 
 The fallback exists, because the q3 shader file parser is only rudimentary and the shader format is quite extensive. We want to implement a fair share of the shader format, especially pertaining to surfaces and their properties (e.g. being collidable, being translucent), but not absolutely everything as that's too bloaty and prone to error.
 
-All collisions for brushes/patches (but not weapons etc) must use ConcavePolygonShape3D for the entire entity no matter what, which is the only thing that works right. This is currently implemented wrong, Grok-3 fucked that up. This is top priority.
+All collisions for brushes/patches (but not weapons etc) must use ConcavePolygonShape3D for the entire entity no matter what, which is the only thing that works right. This was previously implemented incorrectly with per-patch convex shapes. Now implemented: all brush and patch triangles are accumulated per-entity into a single ConcavePolygonShape3D. The include_patch_collision option defaults to true.
 
 # What currently works and doesn't work
 
@@ -37,10 +37,10 @@ Logos on walls have the text mirrored and one logo is pink now in boil.bsp. Howe
 
 Trims (small partial textures on walls) seem vertically compressed.
 
-Triggers are generally in the right place with correct Area3D and align right. However when the trigger is on a doorway that is like rotated 45 degrees, then the entire trigger box is not rotated but it expands to one bigger box that covers the area of rotation. Grok-3 tried to fix this and it totally destroyed all triggers, so we left it the way it is now, since that is like 80% working, better than 0%. However you can try to fix this again at some point.
+Trigger boxes sometimes seem to look ok on first glance (rotation, alignment), but they are actually malformed in ways that are hard to describe. For example the hurtbox for the level floor it looks like it is a triangle with the verticies flipped sometimes, so the surface changes height unevenly from the downward face to the upward face and such. Although it is just a plain unroated box. This has never worked for some reason, Grok-3 always did it wrong, often in even worse ways.
 
-- Skybox is not working in editor, the basic cubemap should render somehow (sun lighting and such not really important now)
-- I don't think there is md3 and iqm model support yet, please implement (animations not required at first)
+- Skybox is not working in editor, the basic cubemap should render somehow (sun lighting and such not really important now). Skyboxes are defined in .shader files and they pull the cubemap files from the env directory of Xonotic. Look up how this works in quake to implement it.
+- I don't think there is md3 and iqm model support yet, please implement (animations not required at first) - use quadot as reference
 - doors should be working and then also `func_rotate` and such things
 - I don't know if directional lights work, they should
 - read mapinfo file also if possible and put that info somewhere
@@ -48,3 +48,5 @@ Triggers are generally in the right place with correct Area3D and align right. H
 # Modifying project
 
 When you are finished adapt this file to reflect the changes and change what I wrote to give yourself better future instructions.
+
+VERY IMPORTANT: The project uses tabs as indentation and you can't mix this with spaces. We want to keep tabs, not spaces as indentation!

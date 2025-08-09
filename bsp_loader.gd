@@ -4,7 +4,7 @@ extends BSPCommon
 var scale_factor: float = 0.0254
 var lightmap_path: String = ""
 var player_model_path: String = ""
-var include_patch_collision: bool = false
+var include_patch_collision: bool = true
 var patch_tessellation_level: int = 8
 var debug_logging: bool = true
 var shader_uv_scales: Dictionary = {
@@ -24,7 +24,7 @@ func _get_import_options(path: String, preset: int) -> Array[Dictionary]:
 	return [
 		{
 			"name": "include_patch_collision",
-			"default_value": false,
+			"default_value": true,
 			"type": TYPE_BOOL,
 			"hint_string": "Include Bezier patch surfaces in collision shapes."
 		},
@@ -479,22 +479,29 @@ func load_bsp(path: String) -> Node3D:
 					mat_data.id.append_array(patch_indices)
 					if debug_logging:
 						print("Processed patch face %d: w=%d, h=%d, vertices=%d, triangles=%d" % [face_idx, w, h, patch_vertices.size(), triangle_count])
+					# Add patch triangles to entity-level concave collision
 					if include_patch_collision and sh_name not in non_solid_shaders:
-						for j in range(0, h - 2, 2):
-							for i in range(0, w - 2, 2):
-								var control: Array[Vector3] = []
-								for jj in range(3):
-									for ii in range(3):
-										var idx = face.first_vert + (j + jj) * w + (i + ii)
-										if idx < verts.size():
-											var vert = verts[idx]
-											control.append(vert.pos)
-								if control.size() == 9:
-									var collider = node if node is CollisionObject3D else null
-									if collider:
-										var owner_shape_id = collider.create_shape_owner(collider)
-										BezierMesh.bezier_collider_mesh(owner_shape_id, collider, face_idx, patch_number, control)
-										patch_number += 1
+						var added_tris := 0
+						for t in range(0, patch_indices.size(), 3):
+							if t + 2 >= patch_indices.size():
+								break
+							var i0: int = patch_indices[t] - v_ofs
+							var i1: int = patch_indices[t + 1] - v_ofs
+							var i2: int = patch_indices[t + 2] - v_ofs
+							if i0 < 0 or i1 < 0 or i2 < 0:
+								continue
+							if i0 >= patch_vertices.size() or i1 >= patch_vertices.size() or i2 >= patch_vertices.size():
+								continue
+							var v0: Vector3 = patch_vertices[i0]
+							var v1: Vector3 = patch_vertices[i1]
+							var v2: Vector3 = patch_vertices[i2]
+							if v0.distance_to(v1) > 0.001 and v1.distance_to(v2) > 0.001 and v2.distance_to(v0) > 0.001:
+								col_vertices.append(v0)
+								col_vertices.append(v1)
+								col_vertices.append(v2)
+								added_tris += 1
+						if debug_logging and added_tris > 0:
+							print("Added %d patch triangles to collision for face %d (shader %s)" % [added_tris, face_idx, sh_name])
 				else:
 					# Non-patch faces
 					var normal = face.normal

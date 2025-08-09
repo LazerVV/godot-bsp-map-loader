@@ -2,7 +2,7 @@ class_name BSPTextureLoader
 extends RefCounted
 
 var texture_base_paths: Array[String] = [
-	"/opt/STORE/XONOTIC_DATA"
+	"/workspace/XONOTIC_DATA"
 ]
 var valid_extensions: Array[String] = ["tga", "png", "jpg", "jpeg", "bmp"]
 var cached_texture_string: String = ""
@@ -12,7 +12,7 @@ var shader_data: Dictionary = {} # Global shader definitions
 var debug_logging: bool = false # Control verbosity of logging
 
 func load_all_shader_files() -> void:
-	var scripts_dir = "/opt/STORE/XONOTIC_DATA/scripts/"
+	var scripts_dir = "/workspace/XONOTIC_DATA/scripts/"
 	var dir = DirAccess.open(scripts_dir)
 	if not dir:
 		if debug_logging:
