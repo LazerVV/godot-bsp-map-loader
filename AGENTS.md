@@ -29,6 +29,8 @@ All collisions for brushes/patches (but not weapons etc) must use ConcavePolygon
 
 The brush and patch geometry with collision boxes, triggers, translucent textures and normal/bump maps are fully visible in the Godot editor and renders mostly correctly (it looks fine at first glance), but small details are sometimes wrong.
 
+- Basic skybox support implemented: sky shaders using `skyParms env/<name>` are parsed and a large unshaded cubemap mesh is added to the scene in-editor. Sky surfaces in geometry are skipped to avoid double-rendering. This is a visual approximation and not a true WorldEnvironment sky yet.
+
 For example, rarely textures are white. This is probably a result of the fallback function triggering and matching the bump map texture with the regex falsely before the proper one. However don't fix the fallback, fix the shader parser.
 
 On thehighestground.bsp patches seem to start and end in the right places, but on some maps arches don't cover door holes all the way to the top (a short amount is missing). Similarly pipes that are bent many times seem to attach in the right places, but don't perfectly align in the middle. Rings (partial cylinders) around jumppads or logos on walls sometimes are not perfectly aligned on one axis.
@@ -39,7 +41,7 @@ Trims (small partial textures on walls) seem vertically compressed.
 
 Trigger boxes sometimes seem to look ok on first glance (rotation, alignment), but they are actually malformed in ways that are hard to describe. For example the hurtbox for the level floor it looks like it is a triangle with the verticies flipped sometimes, so the surface changes height unevenly from the downward face to the upward face and such. Although it is just a plain unroated box. This has never worked for some reason, Grok-3 always did it wrong, often in even worse ways.
 
-- Skybox is not working in editor, the basic cubemap should render somehow (sun lighting and such not really important now). Skyboxes are defined in .shader files and they pull the cubemap files from the env directory of Xonotic. Look up how this works in quake to implement it.
+- Skybox renders in editor (cubemap from `env/` textures via shader `skyParms`). Could be upgraded later to WorldEnvironment sky.
 - I don't think there is md3 and iqm model support yet, please implement (animations not required at first) - use quadot as reference
 - doors should be working and then also `func_rotate` and such things
 - I don't know if directional lights work, they should

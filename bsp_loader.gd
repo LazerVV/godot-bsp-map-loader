@@ -220,6 +220,23 @@ func load_bsp(path: String) -> Node3D:
 		var lm_path = lightmap_path + "lm_%04d.jpg" % i
 		if FileAccess.file_exists(lm_path):
 			lightmap_textures[i] = load(lm_path)
+
+	# Skybox (from shader skyParms)
+	var sky_added := false
+	for sh in shaders:
+		var sh_name = sh.name
+		if texture_loader.has_skybox(sh_name):
+			var env_name = texture_loader.get_skybox_name(sh_name)
+			var sky_textures = texture_loader.load_skybox_textures(env_name)
+			if not sky_textures.is_empty():
+				var sky = _create_skybox_node(env_name, sky_textures)
+				if sky:
+					root.add_child(sky)
+					sky.owner = root
+					sky_added = true
+					if debug_logging:
+						print("Added skybox: ", env_name)
+			break
 	
 	# Entity Processing
 	if debug_logging:
@@ -301,6 +318,9 @@ func load_bsp(path: String) -> Node3D:
 					continue
 				var sh_name = shaders[face.shader_num].name if face.shader_num >= 0 and face.shader_num < shaders.size() else ""
 				if sh_name in NON_RENDER_SHADERS and sh_name != "common/invisible":
+					continue
+				# Skip sky surfaces; drawn via skybox
+				if texture_loader.has_skybox(sh_name):
 					continue
 				if not ent_by_mat.has(sh_name):
 					ent_by_mat[sh_name] = {
@@ -760,6 +780,55 @@ func load_bsp(path: String) -> Node3D:
 	if debug_logging:
 		print("Faces:%d  Surfaces:%d  Entities:%d" % [faces.size(), root.get_child_count(), entities.size()])
 	return root
+
+func _create_skybox_node(env_name: String, tex: Dictionary) -> Node3D:
+	# Build a large inward-facing cube with 6 materials
+	var size: float = 2000.0
+	var h = size * 0.5
+	var mesh := ArrayMesh.new()
+	# Define faces with vertex positions and matching side key
+	var faces: Array = [
+		{"side": "rt", "verts": [Vector3(h, -h, -h), Vector3(h, -h, h), Vector3(h, h, h), Vector3(h, h, -h)]},
+		{"side": "lf", "verts": [Vector3(-h, -h, h), Vector3(-h, -h, -h), Vector3(-h, h, -h), Vector3(-h, h, h)]},
+		{"side": "up", "verts": [Vector3(-h, h, -h), Vector3(h, h, -h), Vector3(h, h, h), Vector3(-h, h, h)]},
+		{"side": "dn", "verts": [Vector3(-h, -h, h), Vector3(h, -h, h), Vector3(h, -h, -h), Vector3(-h, -h, -h)]},
+		{"side": "ft", "verts": [Vector3(-h, -h, h), Vector3(-h, h, h), Vector3(h, h, h), Vector3(h, -h, h)]},
+		{"side": "bk", "verts": [Vector3(h, -h, -h), Vector3(h, h, -h), Vector3(-h, h, -h), Vector3(-h, -h, -h)]}
+	]
+	var surface_idx := 0
+	for f in faces:
+		var side: String = f.side
+		if not tex.has(side):
+			continue
+		var v = PackedVector3Array()
+		for p in f.verts:
+			v.append(p)
+		var uvs = PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)])
+		var idx = PackedInt32Array([0, 1, 2, 0, 2, 3])
+		var arr = []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = v
+		arr[Mesh.ARRAY_TEX_UV] = uvs
+		arr[Mesh.ARRAY_INDEX] = idx
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		# Material
+		var mat = StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_texture = tex[side]
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+		mat.metallic = 0.0
+		mat.roughness = 1.0
+		mesh.surface_set_material(surface_idx, mat)
+		surface_idx += 1
+	# Instance
+	if mesh.get_surface_count() == 0:
+		return null
+	var mi := MeshInstance3D.new()
+	mi.name = "Skybox"
+	mi.mesh = mesh
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 func transform_vector(v: Vector3) -> Vector3:
 	return Vector3(v.x, v.z, -v.y)
