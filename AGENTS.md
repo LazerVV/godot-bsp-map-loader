@@ -29,7 +29,7 @@ All collisions for brushes/patches (but not weapons etc) must use ConcavePolygon
 
 The brush and patch geometry with collision boxes, triggers, translucent textures and normal/bump maps are fully visible in the Godot editor and renders mostly correctly (it looks fine at first glance), but small details are sometimes wrong.
 
-- Basic skybox support implemented: sky shaders using `skyParms env/<name>` are parsed during shader load (BSPTextureLoader now exposes `has_skybox`, `get_skybox_name`, and `load_skybox_textures`). A large unshaded cubemap mesh is added to the scene in-editor and sky surfaces in geometry are skipped to avoid double-rendering. This is a visual approximation and not a true WorldEnvironment sky yet.
+- Skybox support: sky shaders using `skyParms env/<name>` are parsed during shader load (case-insensitive: `skyparms` works too). `BSPTextureLoader` exposes `has_skybox`, `get_skybox_name`, and `load_skybox_textures`. A large unshaded cubemap mesh is added to the scene in-editor and sky surfaces in geometry are skipped to avoid double-rendering. This is a visual approximation and not a true WorldEnvironment sky yet. Xonotic’s `skies/polluted_earth` now shows in maps like `boil`.
 
 For example, rarely textures are white. This is probably a result of the fallback function triggering and matching the bump map texture with the regex falsely before the proper one. However don't fix the fallback, fix the shader parser.
 
@@ -52,3 +52,15 @@ Trigger boxes sometimes seem to look ok on first glance (rotation, alignment), b
 When you are finished adapt this file to reflect the changes and change what I wrote to give yourself better future instructions.
 
 VERY IMPORTANT: The project uses tabs as indentation and you can't mix this with spaces. We want to keep tabs, not spaces as indentation!
+
+# Testing
+
+Run `godot -e` (or whatever else works) inside the workdir folder to check basic syntax errors, it will open via Xephyr. Make sure to terminate it somehow so it doesn't hang you in the console, if you can't use Godot visually.
+
+# Changelog (Aug 9, 2025)
+
+- Fixed a blocking editor parse error by cleaning up `addons/bsp_loader/bsp_texture_loader.gd`:
+  - Replaced Dictionary dot access with bracket access (e.g., `foo["bar"]`).
+  - Corrected several indentation issues (tabs only) that caused "Expected indented block" and "Unindent doesn't match" parser errors.
+  - Resolved a variable shadowing issue in shader parsing (`parts` → `sky_parts`).
+- Verified headless editor startup: `godot --headless --editor --quit --path .` now loads the BSP Loader plugin without errors.

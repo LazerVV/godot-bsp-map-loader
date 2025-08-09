@@ -18,7 +18,7 @@ func load_all_shader_files() -> void:
 		if debug_logging:
 			print("Failed to open scripts directory: %s" % scripts_dir)
 		return
-	
+
 	var shader_files: Array[String] = []
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
@@ -27,10 +27,10 @@ func load_all_shader_files() -> void:
 			shader_files.append(scripts_dir.path_join(file_name))
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	
+
 	# Sort files alphabetically
 	shader_files.sort()
-	
+
 	# Parse each shader file
 	for shader_file in shader_files:
 		var file_data = parse_shader_file(shader_file)
@@ -54,6 +54,7 @@ func parse_shader_file(path: String) -> Dictionary:
 	
 	while not file.eof_reached():
 		var line = file.get_line().strip_edges()
+		var lower_line = line.to_lower()
 		if line.begins_with("//") or line == "":
 			continue
 		if line.begins_with("textures/"):
@@ -65,7 +66,7 @@ func parse_shader_file(path: String) -> Dictionary:
 		if in_block:
 			if line == "{":
 				if in_texture_block:
-					current_block.stages.append({})
+					current_block["stages"].append({})
 				else:
 					in_texture_block = true
 				continue
@@ -80,31 +81,33 @@ func parse_shader_file(path: String) -> Dictionary:
 			if in_texture_block:
 				var parts = line.split(" ", false)
 				if parts.size() > 0:
-					if parts[0] in ["map", "blendFunc", "alphaFunc"]:
+					# Handle common stage directives case-insensitively
+					var key = String(parts[0]).to_lower()
+					if key in ["map", "blendfunc", "alphafunc"]:
 						var stage = {}
-						if parts[0] == "map":
+						if key == "map":
 							stage["map"] = parts[1].replace("textures/", "") if parts.size() > 1 else ""
-						elif parts[0] == "blendFunc":
+						elif key == "blendfunc":
 							if parts.size() == 2 and parts[1] == "blend":
 								stage["blendFunc"] = ["GL_SRC_ALPHA", "GL_ONE_MINUS_SRC_ALPHA"]
 							elif parts.size() > 2:
 								stage["blendFunc"] = parts.slice(1)
-						elif parts[0] == "alphaFunc":
+						elif key == "alphafunc":
 							stage["alphaFunc"] = parts[1] if parts.size() > 1 else ""
 						if stage:
-							current_block.stages.append(stage)
+							current_block["stages"].append(stage)
 			else:
-				if line.begins_with("surfaceparm"):
+				if lower_line.begins_with("surfaceparm"):
 					var parm = line.split(" ")[1] if line.split(" ").size() > 1 else ""
-					current_block.surfaceparms.append(parm)
+					current_block["surfaceparms"].append(parm)
 					if parm == "nonsolid":
 						non_solid_shaders.append(current_shader)
-				elif line.begins_with("skyParms"):
+				elif lower_line.begins_with("skyparms"):
 					# Format: skyParms env/<name> [cloudheight] [outerbox] [innerbox]
-					var parts = line.split(" ", false)
-					if parts.size() >= 2 and parts[1].begins_with("env/"):
-						current_block["sky_env"] = parts[1].replace("env/", "").strip_edges()
-				elif line == "cull none":
+					var sky_parts = line.split(" ", false)
+					if sky_parts.size() >= 2 and sky_parts[1].begins_with("env/"):
+						current_block["sky_env"] = sky_parts[1].replace("env/", "").strip_edges()
+				elif lower_line == "cull none":
 					current_block["cull"] = "none"
 	file.close()
 	return file_data
@@ -119,14 +122,14 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 	# Filter shaders used by renderable faces
 	var used_shader_indices: Array[int] = []
 	for face in faces:
-		if face.shader_num >= 0 and face.shader_num < shaders.size():
-			if not used_shader_indices.has(face.shader_num):
-				used_shader_indices.append(face.shader_num)
+		if face["shader_num"] >= 0 and face["shader_num"] < shaders.size():
+			if not used_shader_indices.has(face["shader_num"]):
+				used_shader_indices.append(face["shader_num"])
 	
 	var used_shaders: Array[Dictionary] = []
 	for idx in used_shader_indices:
 		var shader = shaders[idx]
-		if shader.name not in BSPCommon.NON_RENDER_SHADERS or shader.name == "common/invisible":
+		if shader["name"] not in BSPCommon.NON_RENDER_SHADERS or shader["name"] == "common/invisible":
 			used_shaders.append(shader)
 	
 	if debug_logging:
@@ -135,7 +138,7 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 	# Create required folders
 	var required_folders: Array[String] = []
 	for sh in used_shaders:
-		var top_level = sh.name.get_base_dir().split("/")[0]
+		var top_level = String(sh["name"]).get_base_dir().split("/")[0]
 		if top_level and not required_folders.has(top_level):
 			required_folders.append(top_level)
 			var folder_path = texture_dir.path_join(top_level)
@@ -154,15 +157,15 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 	var suffixes: Array[String] = ["_norm", "_glow", "_gloss", "_reflect"]
 	var special_keywords: Array[String] = ["$lightmap", "$whiteimage", "$blackimage"]
 	for sh in used_shaders:
-		var shader_name = sh.name
+		var shader_name = sh["name"]
 		var tex_name = shader_name
 		var map_texture = ""
 		if shader_data.has(shader_name) and shader_data[shader_name].has("stages"):
 			if debug_logging:
-				print("Shader stages for %s: %s" % [shader_name, shader_data[shader_name].stages])
-			for stage in shader_data[shader_name].stages:
+				print("Shader stages for %s: %s" % [shader_name, shader_data[shader_name]["stages"]])
+			for stage in shader_data[shader_name]["stages"]:
 				if stage.has("map") and stage["map"] and stage["map"] not in special_keywords:
-					map_texture = stage["map"].get_basename()
+					map_texture = String(stage["map"]).get_basename()
 					tex_name = map_texture
 					break
 		if not map_texture or map_texture in special_keywords:
@@ -199,8 +202,8 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 					if load_err == OK and not img.is_empty():
 						img.save_png(dst)
 						if suffix == "":
-							texture_cache.textures[shader_name] = ImageTexture.create_from_image(img)
-						texture_cache.textures[tex_key] = ImageTexture.create_from_image(img)
+							texture_cache["textures"][shader_name] = ImageTexture.create_from_image(img)
+						texture_cache["textures"][tex_key] = ImageTexture.create_from_image(img)
 						if debug_logging:
 							print("Extracted and saved texture: %s" % dst)
 					else:
@@ -218,8 +221,8 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 					if load_err == OK and not img.is_empty():
 						img.save_png(dst)
 						if suffix == "":
-							texture_cache.textures[shader_name] = ImageTexture.create_from_image(img)
-						texture_cache.textures[tex_key] = ImageTexture.create_from_image(img)
+							texture_cache["textures"][shader_name] = ImageTexture.create_from_image(img)
+						texture_cache["textures"][tex_key] = ImageTexture.create_from_image(img)
 						if debug_logging:
 							print("Loaded and saved texture: %s" % dst)
 					else:
@@ -230,7 +233,7 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 						print("Texture file not found: %s" % src)
 	
 	if debug_logging:
-		print("TEXTURE CACHE KEYS: %s" % texture_cache.textures.keys())
+		print("TEXTURE CACHE KEYS: %s" % texture_cache["textures"].keys())
 	return texture_cache
 
 func scan_textures(required_folders: Array[String]) -> void:
@@ -304,7 +307,7 @@ func scan_directory(path: String) -> Array:
 			if debug_logging:
 				print("Failed to open directory for scanning: %s" % path)
 			return files
-	
+
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
@@ -412,7 +415,7 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 		texture_cache["textures"] = {}
 	
 	for sh in shaders:
-		var sh_name = sh.name
+		var sh_name = sh["name"]
 		if sh_name in BSPCommon.NON_RENDER_SHADERS and sh_name != "common/invisible":
 			if sh_name == "noshader":
 				var mat = StandardMaterial3D.new()
@@ -428,9 +431,9 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 		var found_base = false
 		# Try shader name first
 		var tex_key = sh_name
-		if texture_cache.textures.has(tex_key):
-			mat.albedo_texture = texture_cache.textures[tex_key]
-			var img = texture_cache.textures[tex_key].get_image()
+		if texture_cache["textures"].has(tex_key):
+			mat.albedo_texture = texture_cache["textures"][tex_key]
+			var img = texture_cache["textures"][tex_key].get_image()
 			if img and img.detect_alpha() != Image.ALPHA_NONE:
 				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 				mat.alpha_scissor_threshold = 0.5
@@ -442,12 +445,12 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 				print("Applied texture %s to material %s" % [tex_key, sh_name])
 		# Fallback to map directive
 		if not found_base and shader_data.has(sh_name) and shader_data[sh_name].has("stages"):
-			for stage in shader_data[sh_name].stages:
+			for stage in shader_data[sh_name]["stages"]:
 				if stage.has("map") and stage["map"] and not stage["map"].begins_with("$"):
-					var map_name = stage["map"].get_basename()
-					if texture_cache.textures.has(map_name):
-						mat.albedo_texture = texture_cache.textures[map_name]
-						var img = texture_cache.textures[map_name].get_image()
+					var map_name = String(stage["map"]).get_basename()
+					if texture_cache["textures"].has(map_name):
+						mat.albedo_texture = texture_cache["textures"][map_name]
+						var img = texture_cache["textures"][map_name].get_image()
 						if img and img.detect_alpha() != Image.ALPHA_NONE:
 							mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 							mat.alpha_scissor_threshold = 0.5
@@ -478,26 +481,26 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 				print("Warning: No texture found for material %s, using fallback" % sh_name)
 			mat.albedo_color = Color(0.5, 0.5, 0.5, 1.0) # Gray fallback to avoid white
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-		if texture_cache.textures.has(sh_name + "_norm"):
+		if texture_cache["textures"].has(sh_name + "_norm"):
 			mat.normal_enabled = true
-			mat.normal_texture = texture_cache.textures[sh_name + "_norm"]
+			mat.normal_texture = texture_cache["textures"][sh_name + "_norm"]
 			if debug_logging:
 				print("Applied normal texture %s to material %s" % [sh_name + "_norm", sh_name])
-		if texture_cache.textures.has(sh_name + "_glow"):
+		if texture_cache["textures"].has(sh_name + "_glow"):
 			mat.emission_enabled = true
-			mat.emission_texture = texture_cache.textures[sh_name + "_glow"]
+			mat.emission_texture = texture_cache["textures"][sh_name + "_glow"]
 			mat.emission = Color(1, 1, 1)
 			mat.emission_energy = 1.0
 			if debug_logging:
 				print("Applied emission texture %s to material %s" % [sh_name + "_glow", sh_name])
-		if texture_cache.textures.has(sh_name + "_gloss"):
-			mat.roughness_texture = texture_cache.textures[sh_name + "_gloss"]
+		if texture_cache["textures"].has(sh_name + "_gloss"):
+			mat.roughness_texture = texture_cache["textures"][sh_name + "_gloss"]
 			mat.roughness_texture_channel = StandardMaterial3D.TEXTURE_CHANNEL_RED
 			if debug_logging:
 				print("Applied gloss texture %s to material %s" % [sh_name + "_gloss", sh_name])
-		if texture_cache.textures.has(sh_name + "_reflect"):
+		if texture_cache["textures"].has(sh_name + "_reflect"):
 			mat.metallic = 1.0
-			mat.metallic_texture = texture_cache.textures[sh_name + "_reflect"]
+			mat.metallic_texture = texture_cache["textures"][sh_name + "_reflect"]
 			mat.metallic_texture_channel = StandardMaterial3D.TEXTURE_CHANNEL_RED
 			if debug_logging:
 				print("Applied reflect texture %s to material %s" % [sh_name + "_reflect", sh_name])
@@ -506,23 +509,23 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 		if shader_data.has(sh_name):
 			var sh_data = shader_data[sh_name]
 			if sh_data.has("stages"):
-				for stage in sh_data.stages:
-					if stage.has("blendFunc") and stage.blendFunc in ["GL_SRC_ALPHA", "GL_ONE_MINUS_SRC_ALPHA"]:
+				for stage in sh_data["stages"]:
+					if stage.has("blendFunc") and stage["blendFunc"] in ["GL_SRC_ALPHA", "GL_ONE_MINUS_SRC_ALPHA"]:
 						mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 						mat.alpha_scissor_threshold = 0.5
 						if debug_logging:
 							print("Applied alpha blending for material %s" % sh_name)
-					if stage.has("alphaFunc") and stage.alphaFunc == "GE128":
+					if stage.has("alphaFunc") and stage["alphaFunc"] == "GE128":
 						mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 						mat.alpha_scissor_threshold = 0.5
 						if debug_logging:
 							print("Applied alpha testing (GE128) for material %s" % sh_name)
-			if sh_data.has("surfaceparms") and "trans" in sh_data.surfaceparms:
+			if sh_data.has("surfaceparms") and "trans" in sh_data["surfaceparms"]:
 				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 				mat.alpha_scissor_threshold = 0.5
 				if debug_logging:
 					print("Enabled transparency for material %s due to surfaceparm trans" % sh_name)
-			if sh_data.has("cull") and sh_data.cull == "none":
+			if sh_data.has("cull") and sh_data["cull"] == "none":
 				mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 				if debug_logging:
 					print("Disabled culling for material %s" % sh_name)
