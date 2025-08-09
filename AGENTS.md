@@ -23,7 +23,7 @@ There is a fallback mechanism `match_texture_no_one_is_allowed_to_modify_this_fu
 
 The fallback exists, because the q3 shader file parser is only rudimentary and the shader format is quite extensive. We want to implement a fair share of the shader format, especially pertaining to surfaces and their properties (e.g. being collidable, being translucent), but not absolutely everything as that's too bloaty and prone to error.
 
-All collisions for brushes/patches (but not weapons etc) must use ConcavePolygonShape3D for the entire entity no matter what, which is the only thing that works right. This is currently implemented wrong, Grok-3 fucked that up. This is top priority.
+All collisions for brushes and patches (but not weapons etc.) use a single ConcavePolygonShape3D per entity. Maintain this approach going forward.
 
 # What currently works and doesn't work
 
