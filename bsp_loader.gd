@@ -4,7 +4,6 @@ extends BSPCommon
 var scale_factor: float = 0.0254
 var lightmap_path: String = ""
 var player_model_path: String = ""
-var include_patch_collision: bool = false
 var patch_tessellation_level: int = 8
 var debug_logging: bool = true
 var shader_uv_scales: Dictionary = {
@@ -21,21 +20,15 @@ var shader_uv_scales: Dictionary = {
 signal progress_updated(stage: String, pct: float)
 
 func _get_import_options(path: String, preset: int) -> Array[Dictionary]:
-	return [
-		{
-			"name": "include_patch_collision",
-			"default_value": false,
-			"type": TYPE_BOOL,
-			"hint_string": "Include Bezier patch surfaces in collision shapes."
-		},
-		{
-			"name": "patch_tessellation_level",
-			"default_value": 8,
-			"type": TYPE_INT,
-			"property_hint": PROPERTY_HINT_ENUM,
-			"hint_string": "2,4,8,16"
-		}
-	]
+        return [
+                {
+                        "name": "patch_tessellation_level",
+                        "default_value": 8,
+                        "type": TYPE_INT,
+                        "property_hint": PROPERTY_HINT_ENUM,
+                        "hint_string": "2,4,8,16"
+                }
+        ]
 
 func load_bsp(path: String) -> Node3D:
 	emit_signal("progress_updated", "Opening file", 0.0)
@@ -293,8 +286,7 @@ func load_bsp(path: String) -> Node3D:
 				is_collidable = is_brush_collidable(model, brushes, brushsides, shaders)
 			var ent_mesh = ArrayMesh.new()
 			var ent_by_mat: Dictionary = {}
-			var col_vertices: PackedVector3Array = []
-			var patch_number: int = 0
+                        var col_vertices: PackedVector3Array = []
 			for face_idx in range(model.first_face, model.first_face + model.num_faces):
 				var face = faces[face_idx]
 				if face.surface_type not in [MST_PLANAR, MST_TRIANGLE_SOUP, MST_PATCH]:
@@ -477,28 +469,15 @@ func load_bsp(path: String) -> Node3D:
 					mat_data.luv.append_array(patch_luvs)
 					mat_data.color.append_array(patch_colors)
 					mat_data.id.append_array(patch_indices)
-					if debug_logging:
-						print("Processed patch face %d: w=%d, h=%d, vertices=%d, triangles=%d" % [face_idx, w, h, patch_vertices.size(), triangle_count])
-					if include_patch_collision and sh_name not in non_solid_shaders:
-						for j in range(0, h - 2, 2):
-							for i in range(0, w - 2, 2):
-								var control: Array[Vector3] = []
-								for jj in range(3):
-									for ii in range(3):
-										var idx = face.first_vert + (j + jj) * w + (i + ii)
-										if idx < verts.size():
-											var vert = verts[idx]
-											control.append(vert.pos)
-								if control.size() == 9:
-									var collider = node if node is CollisionObject3D else null
-									if collider:
-										var owner_shape_id = collider.create_shape_owner(collider)
-										BezierMesh.bezier_collider_mesh(owner_shape_id, collider, face_idx, patch_number, control)
-										patch_number += 1
-				else:
-					# Non-patch faces
-					var normal = face.normal
-					var up_vector = Vector3.UP
+                                        if debug_logging:
+                                                print("Processed patch face %d: w=%d, h=%d, vertices=%d, triangles=%d" % [face_idx, w, h, patch_vertices.size(), triangle_count])
+                                        if sh_name not in non_solid_shaders:
+                                                for idx in patch_indices:
+                                                        col_vertices.append(mat_data.v[idx])
+                                else:
+                                        # Non-patch faces
+                                        var normal = face.normal
+                                        var up_vector = Vector3.UP
 					if abs(normal.dot(Vector3.UP)) > 0.99:
 						up_vector = Vector3.FORWARD
 					var tangent = normal.cross(up_vector).normalized()
