@@ -803,7 +803,22 @@ func _create_skybox_node(env_name: String, tex: Dictionary) -> Node3D:
 		var v = PackedVector3Array()
 		for p in f.verts:
 			v.append(p)
-		var uvs = PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)])
+		# Quake3 env/<name>_ft/bk/lf/rt/up/dn images have specific orientation.
+		# Our faces for the Z axis (front/back) appeared rotated 90 degrees.
+		# The user manually adjusted the rotation of individual sides to make it work right.
+		var uvs: PackedVector2Array
+		match side:
+			"up":
+				uvs = PackedVector2Array([Vector2(0,0), Vector2(0,1), Vector2(1,1), Vector2(1,0)])
+			"ft": #
+				uvs = PackedVector2Array([Vector2(1,1), Vector2(1,0), Vector2(0,0), Vector2(0,1)])
+			"bk":
+				uvs = PackedVector2Array([Vector2(1,1), Vector2(1,0), Vector2(0,0), Vector2(0,1)])
+			"dn":
+				uvs = PackedVector2Array([Vector2(1,1), Vector2(1,0), Vector2(0,0), Vector2(0,1)])
+			_:
+				# Default orientation for rt/lf/up/dn
+				uvs = PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)])
 		var idx = PackedInt32Array([0, 1, 2, 0, 2, 3])
 		var arr = []
 		arr.resize(Mesh.ARRAY_MAX)
@@ -931,7 +946,7 @@ func is_brush_collidable(model: Dictionary, brushes: Array[Dictionary], brushsid
 			var side = brushsides[side_idx]
 			var shader_num = side.shader_num
 			if shader_num >= 0 and shader_num < shaders.size():
-					var shader_name = shaders[shader_num]["name"]
+				var shader_name = shaders[shader_num]["name"]
 				if shader_name in SOLID_SHADERS:
 					solid_count += 1
 				elif shader_name in NON_RENDER_SHADERS and shader_name != "common/invisible":

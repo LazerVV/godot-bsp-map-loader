@@ -45,15 +45,17 @@ func parse_shader_file(path: String) -> Dictionary:
 		if debug_logging:
 			print("Shader file not found: %s" % path)
 		return file_data
-	
+
 	var file = FileAccess.open(path, FileAccess.READ)
 	var current_shader: String = ""
 	var current_block: Dictionary = {}
-	var in_block: bool = false
-	var in_texture_block: bool = false
-	
+	var in_shader: bool = false
+	var in_stage: bool = false
+	var brace_level: int = 0
+
 	while not file.eof_reached():
-		var line = file.get_line().strip_edges()
+		var raw_line = file.get_line()
+		var line = raw_line.strip_edges()
 		var lower_line = line.to_lower()
 		if line.begins_with("//") or line == "":
 			continue
@@ -61,27 +63,32 @@ func parse_shader_file(path: String) -> Dictionary:
 			current_shader = line.replace("textures/", "")
 			current_block = {"surfaceparms": [], "stages": [], "cull": "", "sky_env": ""}
 			file_data[current_shader] = current_block
-			in_block = true
+			in_shader = true
+			brace_level = 0
+			in_stage = false
 			continue
-		if in_block:
+		if in_shader:
 			if line == "{":
-				if in_texture_block:
+				brace_level += 1
+				if brace_level == 2:
+					# Entering a stage block
+					in_stage = true
 					current_block["stages"].append({})
-				else:
-					in_texture_block = true
 				continue
 			if line == "}":
-				if in_texture_block:
-					in_texture_block = false
-				else:
-					in_block = false
+				if brace_level == 2 and in_stage:
+					# Leaving a stage block
+					in_stage = false
+				elif brace_level == 1:
+					# Leaving shader block
+					in_shader = false
 					if debug_logging:
 						print("Parsed shader %s: %s" % [current_shader, current_block])
+				brace_level = max(0, brace_level - 1)
 				continue
-			if in_texture_block:
+			if in_stage:
 				var parts = line.split(" ", false)
 				if parts.size() > 0:
-					# Handle common stage directives case-insensitively
 					var key = String(parts[0]).to_lower()
 					if key in ["map", "blendfunc", "alphafunc"]:
 						var stage = {}
@@ -97,8 +104,10 @@ func parse_shader_file(path: String) -> Dictionary:
 						if stage:
 							current_block["stages"].append(stage)
 			else:
+				# Shader-level directives
 				if lower_line.begins_with("surfaceparm"):
-					var parm = line.split(" ")[1] if line.split(" ").size() > 1 else ""
+					var tokens = line.split(" ")
+					var parm = tokens[1] if tokens.size() > 1 else ""
 					current_block["surfaceparms"].append(parm)
 					if parm == "nonsolid":
 						non_solid_shaders.append(current_shader)

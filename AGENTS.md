@@ -63,10 +63,18 @@ godot --headless --editor --quit --path . --verbose
 rm assets/boil_delme_*
 ```
 
-# Changelog (Aug 9, 2025)
+# Changelog (Aug 9–10, 2025)
 
-- Fixed a blocking editor parse error by cleaning up `addons/bsp_loader/bsp_texture_loader.gd`:
-  - Replaced Dictionary dot access with bracket access (e.g., `foo["bar"]`).
-  - Corrected several indentation issues (tabs only) that caused "Expected indented block" and "Unindent doesn't match" parser errors.
-  - Resolved a variable shadowing issue in shader parsing (`parts` → `sky_parts`).
-- Verified headless editor startup: `godot --headless --editor --quit --path .` now loads the BSP Loader plugin without errors.
+- Fix: Skybox not showing in boil
+  - Corrected Quake3 shader parser brace handling in `bsp_texture_loader.gd`:
+    - Distinguish shader-level vs stage-level blocks using `brace_level` and `in_stage`.
+    - Parse `skyParms env/<name>` at shader level so `sky_env` is filled (e.g. `skies/polluted_earth`).
+  - Sky surfaces are skipped in geometry and a large unshaded cube is added once per scene. Confirmed via log: `Added skybox: polluted_earth/polluted_earth`.
+- Stability: Unblocked editor import by fixing a bad indentation block in `bsp_loader.gd` (previously caused a parse error).
+- Fix: Restored original `is_brush_collidable(...)` logic in `bsp_loader.gd`.
+  - Counts brush sides by shader: increments for `SOLID_SHADERS`, decrements for `NON_RENDER_SHADERS` except `common/invisible`, then treats brush as collidable when `solid_count > total_sides/2`.
+  - This re-enables correct func_* entity collidability and avoids over-colliding non-solid surfaces.
+- Verified headless reimport of `boil` works and adds the skybox: `godot --headless --editor --quit --path .`.
+
+- Fix: Skybox face orientation on Z axis
+  - Adjusted UV mapping in `bsp_loader.gd` for `ft` and `bk` faces (rotate 90° CW) so Quake3 `env/<name>_ft/_bk` align with neighboring faces. Top/bottom were already correct.
