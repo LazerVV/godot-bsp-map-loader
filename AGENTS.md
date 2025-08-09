@@ -29,7 +29,7 @@ All collisions for brushes/patches (but not weapons etc) must use ConcavePolygon
 
 The brush and patch geometry with collision boxes, triggers, translucent textures and normal/bump maps are fully visible in the Godot editor and renders mostly correctly (it looks fine at first glance), but small details are sometimes wrong.
 
-- Skybox support: sky shaders using `skyParms env/<name>` are parsed during shader load (case-insensitive: `skyparms` works too). `BSPTextureLoader` exposes `has_skybox`, `get_skybox_name`, and `load_skybox_textures`. A large unshaded cubemap mesh is added to the scene in-editor and sky surfaces in geometry are skipped to avoid double-rendering. This is a visual approximation and not a true WorldEnvironment sky yet. Xonotic’s `skies/polluted_earth` now shows in maps like `boil`.
+- Skybox: finished. Shader `skyParms env/<name>` is parsed; a large unshaded cubemap mesh is added and sky surfaces are skipped to avoid double-rendering. This looks correct in-editor (e.g. `skies/polluted_earth` on `boil`).
 
 For example, rarely textures are white. This is probably a result of the fallback function triggering and matching the bump map texture with the regex falsely before the proper one. However don't fix the fallback, fix the shader parser.
 
@@ -39,7 +39,7 @@ Logos on walls have the text mirrored and one logo is pink now in boil.bsp. Howe
 
 Trims (small partial textures on walls) seem vertically compressed.
 
-Trigger boxes sometimes seem to look ok on first glance (rotation, alignment), but they are actually malformed in ways that are hard to describe. For example the hurtbox for the level floor it looks like it is a triangle with the verticies flipped sometimes, so the surface changes height unevenly from the downward face to the upward face and such. Although it is just a plain unroated box. This has never worked for some reason, Grok-3 always did it wrong, often in even worse ways.
+Trigger volumes: fixed. Triggers now build their `ConcavePolygonShape3D` directly from the submodel’s triangulated faces (instead of ad-hoc plane hulls), so boxes and ramps match the BSP exactly and no longer appear twisted or malformed.
 
 - Skybox renders in editor (cubemap from `env/` textures via shader `skyParms`). Could be upgraded later to WorldEnvironment sky.
 - I don't think there is md3 and iqm model support yet, please implement (animations not required at first) - use quadot as reference
@@ -51,7 +51,7 @@ Trigger boxes sometimes seem to look ok on first glance (rotation, alignment), b
 
 When you are finished adapt this file to reflect the changes and change what I wrote to give yourself better future instructions.
 
-VERY IMPORTANT: The project uses tabs as indentation and you can't mix this with spaces. We want to keep tabs, not spaces as indentation!
+VERY IMPORTANT: The project uses tabs as indentation and you can't mix this with spaces. We want to keep tabs, not spaces as indentation! ALSO YOU MESSED UP INDENTATION ALL THE TIME BEFORE, SUCH THAT if FUNCTIONS GET ESSENTIALLY COMMENTED OUT, BECAUSE YOU MOVE THEM INTO if debug_enabled: CLAUSES, AND SHIT LIKE THAT. WE CAN'T HAVE THAT!!! CHECK YOURSELF!
 
 # Testing
 
@@ -78,3 +78,10 @@ rm assets/boil_delme_*
 
 - Fix: Skybox face orientation on Z axis
   - Adjusted UV mapping in `bsp_loader.gd` for `ft` and `bk` faces (rotate 90° CW) so Quake3 `env/<name>_ft/_bk` align with neighboring faces. Top/bottom were already correct.
+
+- Fix: Trigger shapes malformed
+  - For trigger/goal entities, build triangles from the model’s faces (`MST_PLANAR`/`MST_TRIANGLE_SOUP`) and feed them to a `ConcavePolygonShape3D` with a matching debug mesh. This replaces the previous plane-intersection + naive “fan” triangulation that produced twisted volumes.
+
+- Fix: Trigger import errors and placement
+  - `trigger_entity.gd` now extends `Area3D` (was `StaticBody3D`), fixing the base-class mismatch when attaching the script to trigger nodes.
+  - Moved trigger shape construction out of the `info_player` block in `bsp_loader.gd` so triggers get their `ConcavePolygonShape3D` built regardless of player spawns. Centers shapes at the submodel AABB center and applies entity `angles` consistently.

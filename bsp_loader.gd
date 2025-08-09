@@ -671,7 +671,33 @@ func load_bsp(path: String) -> Node3D:
 			if model:
 				var center = (model.mins + model.maxs) / 2.0
 				node.position = center
-				var faces_array = extract_brush_vertices(model, brushes, brushsides, planes, shaders)
+				# Build triangles directly from the model's faces to avoid malformed hulls
+				var faces_array = PackedVector3Array()
+				for face_idx in range(model.first_face, model.first_face + model.num_faces):
+					var face = faces[face_idx]
+					if face.surface_type not in [MST_PLANAR, MST_TRIANGLE_SOUP]:
+						continue
+					for i_idx in range(0, face.num_mv, 3):
+						var a_idx = meshverts[face.first_mv + i_idx]
+						var b_idx = meshverts[face.first_mv + i_idx + 1]
+						var c_idx = meshverts[face.first_mv + i_idx + 2]
+						var v_indices = [a_idx, b_idx, c_idx]
+						var ok := true
+						for mv_idx in v_indices:
+							if mv_idx < 0 or mv_idx >= face.num_verts:
+								ok = false
+								break
+						if not ok:
+							continue
+						var va = verts[face.first_vert + a_idx].pos
+						var vb = verts[face.first_vert + b_idx].pos
+						var vc = verts[face.first_vert + c_idx].pos
+						# Skip degenerate triangles
+						if va.distance_to(vb) <= 0.001 or vb.distance_to(vc) <= 0.001 or vc.distance_to(va) <= 0.001:
+							continue
+						faces_array.append(va)
+						faces_array.append(vb)
+						faces_array.append(vc)
 				if faces_array.size() > 0 and faces_array.size() % 3 == 0:
 					# Make local
 					var local_faces = PackedVector3Array()
@@ -715,14 +741,14 @@ func load_bsp(path: String) -> Node3D:
 					debug_mesh.owner = root
 					# Update AABB
 					var aabb = AABB()
-					for v in local_faces:
-						aabb = aabb.expand(v)
+					for vtx in local_faces:
+						aabb = aabb.expand(vtx)
 					debug_array_mesh.custom_aabb = aabb
 					if debug_logging:
 						print("Added trigger shape for entity: %s with %d vertices, center: %s" % [node_name, faces_array.size(), center])
 				else:
 					if debug_logging:
-						print("Failed to generate trigger vertices (%d, mod 3 = %d) for entity: %s, falling back to bounding box" % [faces_array.size(), faces_array.size() % 3, node_name])
+						print("No triangles found for trigger entity: %s, falling back to bounding box" % node_name)
 					# Fallback to bounding box
 					var col_shape = CollisionShape3D.new()
 					var box_shape = BoxShape3D.new()
