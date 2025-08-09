@@ -85,3 +85,7 @@ rm assets/boil_delme_*
 - Fix: Trigger import errors and placement
   - `trigger_entity.gd` now extends `Area3D` (was `StaticBody3D`), fixing the base-class mismatch when attaching the script to trigger nodes.
   - Moved trigger shape construction out of the `info_player` block in `bsp_loader.gd` so triggers get their `ConcavePolygonShape3D` built regardless of player spawns. Centers shapes at the submodel AABB center and applies entity `angles` consistently.
+
+- Fix: Trigger fallback box shape unrotated
+  - Removed `BoxShape3D` fallback for triggers. When a submodel has no triangulated faces, the AABB is triangulated and fed to a `ConcavePolygonShape3D` instead.
+  - The fallback concave AABB is built in local space and rotated by entity `angles`, so 45° doorway triggers align correctly instead of appearing as axis-aligned boxes pointing away from the door.

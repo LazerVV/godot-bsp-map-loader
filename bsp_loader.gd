@@ -748,23 +748,41 @@ func load_bsp(path: String) -> Node3D:
 						print("Added trigger shape for entity: %s with %d vertices, center: %s" % [node_name, faces_array.size(), center])
 				else:
 					if debug_logging:
-						print("No triangles found for trigger entity: %s, falling back to bounding box" % node_name)
-					# Fallback to bounding box
-					var col_shape = CollisionShape3D.new()
-					var box_shape = BoxShape3D.new()
+						print("No triangles found for trigger entity: %s, building concave box" % node_name)
+					# Fallback: triangulated AABB as ConcavePolygonShape3D (respects rotation)
 					var extents = (model.maxs - model.mins) / 2.0
-					box_shape.extents = extents
-					col_shape.shape = box_shape
+					var bbox_faces = create_bounding_box_vertices(model.mins, model.maxs)
+					# Make local to center
+					var local_faces = PackedVector3Array()
+					for v in bbox_faces:
+						local_faces.append(v - center)
+					# Apply rotation from entity angles, if any
+					if ent.has("angles"):
+						var angles = parse_vector3(ent.angles)
+						var transform = Transform3D.IDENTITY
+						transform = transform.rotated(Vector3.RIGHT, deg_to_rad(angles.x))
+						transform = transform.rotated(Vector3.UP, deg_to_rad(angles.y))
+						transform = transform.rotated(Vector3.FORWARD, deg_to_rad(angles.z))
+						var rotated_faces = PackedVector3Array()
+						for v in local_faces:
+							rotated_faces.append(transform.basis * v)
+						local_faces = rotated_faces
+					# Create collision shape
+					var col_shape = CollisionShape3D.new()
+					var concave_shape = ConcavePolygonShape3D.new()
+					concave_shape.set_faces(local_faces)
+					col_shape.shape = concave_shape
 					col_shape.name = "TriggerShape"
 					col_shape.position = Vector3.ZERO
 					node.add_child(col_shape)
 					col_shape.owner = root
-					# Debug mesh for bounding box
+					# Debug mesh for bounding box (matches rotation)
 					var debug_mesh = MeshInstance3D.new()
 					var debug_array_mesh = ArrayMesh.new()
-					var cube_mesh = BoxMesh.new()
-					cube_mesh.size = extents * 2.0
-					debug_array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, cube_mesh.get_mesh_arrays())
+					var arr = []
+					arr.resize(Mesh.ARRAY_MAX)
+					arr[Mesh.ARRAY_VERTEX] = local_faces
+					debug_array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 					var debug_mat = StandardMaterial3D.new()
 					debug_mat.albedo_color = Color(1, 0, 0, 0.5)
 					debug_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -775,7 +793,7 @@ func load_bsp(path: String) -> Node3D:
 					node.add_child(debug_mesh)
 					debug_mesh.owner = root
 					if debug_logging:
-						print("Added fallback box trigger shape for entity: %s, extents: %s" % [node_name, extents])
+						print("Added concave AABB trigger for entity: %s, extents: %s" % [node_name, extents])
 			else:
 				if debug_logging:
 					print("No model found for trigger entity: %s" % node_name)
