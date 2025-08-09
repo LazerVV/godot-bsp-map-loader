@@ -58,7 +58,7 @@ func parse_shader_file(path: String) -> Dictionary:
 			continue
 		if line.begins_with("textures/"):
 			current_shader = line.replace("textures/", "")
-			current_block = {"surfaceparms": [], "stages": [], "cull": ""}
+			current_block = {"surfaceparms": [], "stages": [], "cull": "", "sky_env": ""}
 			file_data[current_shader] = current_block
 			in_block = true
 			continue
@@ -99,6 +99,11 @@ func parse_shader_file(path: String) -> Dictionary:
 					current_block.surfaceparms.append(parm)
 					if parm == "nonsolid":
 						non_solid_shaders.append(current_shader)
+				elif line.begins_with("skyParms"):
+					# Format: skyParms env/<name> [cloudheight] [outerbox] [innerbox]
+					var parts = line.split(" ", false)
+					if parts.size() >= 2 and parts[1].begins_with("env/"):
+						current_block["sky_env"] = parts[1].replace("env/", "").strip_edges()
 				elif line == "cull none":
 					current_block["cull"] = "none"
 	file.close()
@@ -528,6 +533,95 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 
 func get_non_solid_shaders() -> Array[String]:
 	return non_solid_shaders
+
+# Skybox helpers (parsed from shader skyParms env/<name>)
+func has_skybox(shader_name: String) -> bool:
+	return shader_data.has(shader_name) and shader_data[shader_name].has("sky_env") and shader_data[shader_name]["sky_env"] != ""
+
+func get_skybox_name(shader_name: String) -> String:
+	if has_skybox(shader_name):
+		return String(shader_data[shader_name]["sky_env"])
+	return ""
+
+func load_skybox_textures(env_name: String) -> Dictionary:
+	var result: Dictionary = {}
+	if not env_name:
+		return result
+	var sides = {
+		"rt": ["rt", "px"],
+		"lf": ["lf", "nx"],
+		"up": ["up", "py"],
+		"dn": ["dn", "ny"],
+		"ft": ["ft", "pz"],
+		"bk": ["bk", "nz"]
+	}
+	# Search both loose files and inside pk3 archives under env/
+	for base_path in texture_base_paths:
+		# 1) Regular files
+		for side in sides.keys():
+			if result.has(side):
+				continue
+			for alias in sides[side]:
+				for ext in valid_extensions:
+					var p = base_path.path_join("env").path_join(env_name + "_" + alias + "." + ext)
+					if FileAccess.file_exists(p):
+						var img = Image.new()
+						if img.load(p) == OK and not img.is_empty():
+							result[side] = ImageTexture.create_from_image(img)
+							break
+				if result.has(side):
+					continue
+		# 2) PK3 archives
+		var dir = DirAccess.open(base_path)
+		if dir:
+			dir.list_dir_begin()
+			var file_name = dir.get_next()
+			var pk3_list: Array[String] = []
+			while file_name != "":
+				if file_name.ends_with(".pk3"):
+					pk3_list.append(base_path.path_join(file_name))
+				file_name = dir.get_next()
+			dir.list_dir_end()
+			pk3_list.sort()
+			for pk3_path in pk3_list:
+				var zip = ZIPReader.new()
+				if zip.open(pk3_path) != OK:
+					continue
+				for side in sides.keys():
+					if result.has(side):
+						continue
+					var found = false
+					for alias in sides[side]:
+						for ext in valid_extensions:
+							var inside_path = "env/" + env_name + "_" + alias + "." + ext
+							if zip.get_files().has(inside_path):
+								var bytes = zip.read_file(inside_path)
+								var img = Image.new()
+								var ok = OK
+								match ext:
+									"tga":
+										ok = img.load_tga_from_buffer(bytes)
+									"png":
+										ok = img.load_png_from_buffer(bytes)
+									"jpg", "jpeg":
+										ok = img.load_jpg_from_buffer(bytes)
+									"bmp":
+										ok = img.load_bmp_from_buffer(bytes)
+									_:
+										ok = ERR_FILE_UNRECOGNIZED
+								if ok == OK and not img.is_empty():
+									result[side] = ImageTexture.create_from_image(img)
+									found = true
+									break
+						if found:
+							continue
+				zip.close()
+	# Ensure we found all six sides
+	for side in ["rt","lf","up","dn","ft","bk"]:
+		if not result.has(side):
+			# Missing side; return what we have (caller can skip if empty)
+			return result
+	return result
 
 static func escape_regex(s: String) -> String:
 	var special_chars = ".^$*+?()[]{}|"

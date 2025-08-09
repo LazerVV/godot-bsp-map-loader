@@ -29,7 +29,7 @@ All collisions for brushes/patches (but not weapons etc) must use ConcavePolygon
 
 The brush and patch geometry with collision boxes, triggers, translucent textures and normal/bump maps are fully visible in the Godot editor and renders mostly correctly (it looks fine at first glance), but small details are sometimes wrong.
 
-- Basic skybox support implemented: sky shaders using `skyParms env/<name>` are parsed and a large unshaded cubemap mesh is added to the scene in-editor. Sky surfaces in geometry are skipped to avoid double-rendering. This is a visual approximation and not a true WorldEnvironment sky yet.
+- Basic skybox support implemented: sky shaders using `skyParms env/<name>` are parsed during shader load (BSPTextureLoader now exposes `has_skybox`, `get_skybox_name`, and `load_skybox_textures`). A large unshaded cubemap mesh is added to the scene in-editor and sky surfaces in geometry are skipped to avoid double-rendering. This is a visual approximation and not a true WorldEnvironment sky yet.
 
 For example, rarely textures are white. This is probably a result of the fallback function triggering and matching the bump map texture with the regex falsely before the proper one. However don't fix the fallback, fix the shader parser.
 
