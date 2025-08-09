@@ -45,3 +45,6 @@ Triggers are generally in the right place with correct Area3D and align right. H
 - I don't know if directional lights work, they should
 - read mapinfo file also if possible and put that info somewhere
 
+# Modifying project
+
+When you are finished adapt this file to reflect the changes and change what I wrote to give yourself better future instructions.
