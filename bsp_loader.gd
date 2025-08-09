@@ -224,7 +224,7 @@ func load_bsp(path: String) -> Node3D:
 	# Skybox (from shader skyParms)
 	var sky_added := false
 	for sh in shaders:
-		var sh_name = sh.name
+		var sh_name = sh["name"]
 		if texture_loader.has_skybox(sh_name):
 			var env_name = texture_loader.get_skybox_name(sh_name)
 			var sky_textures = texture_loader.load_skybox_textures(env_name)
@@ -316,7 +316,7 @@ func load_bsp(path: String) -> Node3D:
 				var face = faces[face_idx]
 				if face.surface_type not in [MST_PLANAR, MST_TRIANGLE_SOUP, MST_PATCH]:
 					continue
-				var sh_name = shaders[face.shader_num].name if face.shader_num >= 0 and face.shader_num < shaders.size() else ""
+				var sh_name = shaders[face.shader_num]["name"] if face.shader_num >= 0 and face.shader_num < shaders.size() else ""
 				if sh_name in NON_RENDER_SHADERS and sh_name != "common/invisible":
 					continue
 				# Skip sky surfaces; drawn via skybox
@@ -931,7 +931,7 @@ func is_brush_collidable(model: Dictionary, brushes: Array[Dictionary], brushsid
 			var side = brushsides[side_idx]
 			var shader_num = side.shader_num
 			if shader_num >= 0 and shader_num < shaders.size():
-				var shader_name = shaders[shader_num].name
+					var shader_name = shaders[shader_num]["name"]
 				if shader_name in SOLID_SHADERS:
 					solid_count += 1
 				elif shader_name in NON_RENDER_SHADERS and shader_name != "common/invisible":

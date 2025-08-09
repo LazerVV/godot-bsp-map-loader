@@ -55,7 +55,13 @@ VERY IMPORTANT: The project uses tabs as indentation and you can't mix this with
 
 # Testing
 
-Run `godot -e` (or whatever else works) inside the workdir folder to check basic syntax errors, it will open via Xephyr. Make sure to terminate it somehow so it doesn't hang you in the console, if you can't use Godot visually.
+Duplicating assets/boil.bsp will trigger a reimport of this file to test the importer.
+
+```
+cp assets/boil.bsp assets/boil_delme_`date +%s`.bsp
+godot --headless --editor --quit --path . --verbose
+rm assets/boil_delme_*
+```
 
 # Changelog (Aug 9, 2025)
 
