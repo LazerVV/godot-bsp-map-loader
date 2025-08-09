@@ -6,7 +6,7 @@ The aim is not to be overly rigorous in making things work. Lots of things are f
 
 Godot version: 4.4.1
 
-In the folder steal-code-from-those-projects you will find Quadot-Arena, Xonotic and Darkplaces source code to look at implementations for inspiration. Quadot-Arena is especially important, because it is a fully working Quake 3 port for Godot, and it does many many things the right way (i.e. it takes shortcuts and simplifies well). Xonotic is very very similar to Quake 3 in terms of map format and such.
+In the folder steal-code-from-those-projects you will find Quadot-Arena, Xonotic and Darkplaces source code to look at implementations for inspiration. Quadot-Arena is especially important, because it is a fully working Quake 3 port for Godot, and it does many many things the right way (i.e. it takes shortcuts and simplifies well). Xonotic is very very similar to Quake 3 in terms of map format and such. Jolt Physics engine is now part of Godot, this was not so since Quadot was written.
 
 # Terminology
 
