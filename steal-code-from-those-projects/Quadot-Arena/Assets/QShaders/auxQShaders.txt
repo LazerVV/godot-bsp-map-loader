@@ -1,0 +1,74 @@
+bfgTracerExplosion
+{
+	cull disable
+	{
+		animmap 5 res/assets/textures/bfgtracer/bfg_tracer1.tga  res/assets/textures/bfgtracer/bfg_tracer2.tga res/assets/textures/bfgtracer/bfg_tracer3.tga
+		rgbGen wave inversesawtooth 0 1 0 5
+		blendfunc add
+	}
+	{
+		animmap 5 res/assets/textures/bfgtracer/bfg_tracer2.tga res/assets/textures/bfgtracer/bfg_tracer3.tga gfx/colors/black.tga
+		rgbGen wave sawtooth 0 1 0 5
+		blendfunc add
+	}
+}
+
+bloodTrail
+{
+	cull disable
+	sort additive
+	{
+		clampmap gfx/damage/blood_spurt.tga
+		rgbGen		vertex
+		blendfunc GL_SRC_ALPHA GL_ZERO
+	}
+}
+
+bloodExplosion
+{
+	cull disable
+	sort additive
+	{
+		animmap 5 models/weaphits/blood201.tga models/weaphits/blood202.tga models/weaphits/blood203.tga models/weaphits/blood204.tga models/weaphits/blood205.tga
+		rgbGen		vertex
+		blendfunc GL_SRC_ALPHA GL_ZERO
+	}
+}
+
+models/gibs/gibs
+{
+	{
+		map models/gibs/gibs.tga
+	}
+}
+
+models/powerups/ammo/ammopack2
+{
+	nopicmip
+	{
+		map models/powerups/ammo/ammopack2.tga
+		blendfunc GL_ONE GL_ZERO
+		rgbGen lightingDiffuse
+	}
+}
+
+powerups/regenWeapon
+{
+	deformVertexes wave 100 sin 0.6 0 0 0
+	{
+		map textures/effects/regenmap2.tga
+		blendfunc GL_ONE GL_ONE
+		tcGen environment
+                tcmod rotate 30
+                tcmod scroll 1 .1
+	}
+}
+
+Puff
+{
+	sort Additive
+	{
+		map gfx/misc/smokepuff3.tga
+		blendFunc GL_SRC_ALPHA GL_ZERO
+	}
+}

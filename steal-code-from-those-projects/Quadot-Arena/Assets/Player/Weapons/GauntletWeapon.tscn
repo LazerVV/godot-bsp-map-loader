@@ -1,0 +1,64 @@
+[gd_scene load_steps=4 format=3 uid="uid://c6u64843g6wjy"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Player/Weapons/GauntletWeapon.cs" id="1_h6h2o"]
+[ext_resource type="Script" path="res://Assets/ThirdParty/MultiAudioListener/MultiAudioStream.cs" id="2_kaxh2"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/ModelController.cs" id="2_q7ixh"]
+
+[node name="PlayerWeapon" type="Node3D" node_paths=PackedStringArray("humStream", "audioStream", "models", "muzzleObject", "barrelObject", "muzzleLight")]
+script = ExtResource("1_h6h2o")
+humStream = NodePath("HumAudioStream")
+_humSound = "weapons/melee/fstrun"
+Offset = Vector3(0.25, -0.35, -0.5)
+audioStream = NodePath("WeaponAudioStream")
+_sounds = PackedStringArray("weapons/melee/fstatck", "weapons/noammo", "weapons/change")
+models = [NodePath("Gauntlet"), NodePath("Gauntlet/BarrelTag/Barrel"), NodePath("Gauntlet/Muzzle")]
+muzzleObject = NodePath("Gauntlet/Muzzle")
+barrelObject = NodePath("Gauntlet/BarrelTag/Barrel")
+useCrosshair = false
+isMelee = true
+DamageMin = 40
+DamageMax = 60
+kickSpeed = 30.0
+_fireRate = 4.0
+muzzleLight = NodePath("OmniLight3D")
+
+[node name="Gauntlet" type="Node3D" parent="."]
+transform = Transform3D(0.943447, 0.211992, 0.254887, -0.17101, 0.969846, -0.173648, -0.284013, 0.12024, 0.951251, 0, 0, 0)
+script = ExtResource("2_q7ixh")
+modelName = "weapons2/gauntlet/gauntlet"
+useCommon = false
+isViewModel = true
+currentState = 0
+
+[node name="BarrelTag" type="Node3D" parent="Gauntlet"]
+
+[node name="Barrel" type="Node3D" parent="Gauntlet/BarrelTag"]
+script = ExtResource("2_q7ixh")
+modelName = "weapons2/gauntlet/gauntlet_barrel"
+tagName = "tag_barrel"
+useCommon = false
+isViewModel = true
+currentState = 0
+
+[node name="Muzzle" type="Node3D" parent="Gauntlet"]
+script = ExtResource("2_q7ixh")
+modelName = "weapons2/gauntlet/gauntlet_flash"
+tagName = "tag_flash"
+useCommon = false
+isTransparent = true
+isViewModel = true
+currentState = 0
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+layers = 255
+light_color = Color(0.313726, 0.631373, 0.803922, 1)
+light_bake_mode = 0
+omni_shadow_mode = 0
+
+[node name="WeaponAudioStream" type="Node3D" parent="."]
+script = ExtResource("2_kaxh2")
+Bus = "FXBus"
+
+[node name="HumAudioStream" type="Node3D" parent="."]
+script = ExtResource("2_kaxh2")
+Bus = "FXBus"

@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://ca1g7ktte6e7h"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/SpriteController.cs" id="1_3630b"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/Data Resources/SpriteData.cs" id="2_3p3to"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/LightFade.cs" id="3_ways6"]
+
+[sub_resource type="Resource" id="Resource_kjs51"]
+resource_local_to_scene = true
+script = ExtResource("2_3p3to")
+destroyType = 1
+destroyTimer = 5.0
+Modulate = Color(0, 0, 0, 1)
+
+[node name="PlasmaMark" type="Node3D"]
+script = ExtResource("1_3630b")
+spriteName = "res/Assets/Textures/plasma_mark"
+spriteRadius = 1.0
+useMultiMesh = 2
+spriteData = SubResource("Resource_kjs51")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+layers = 255
+light_color = Color(0, 0.0980392, 1, 1)
+light_energy = 5.0
+light_bake_mode = 0
+omni_shadow_mode = 0
+script = ExtResource("3_ways6")
+destroyTimer = 1.5

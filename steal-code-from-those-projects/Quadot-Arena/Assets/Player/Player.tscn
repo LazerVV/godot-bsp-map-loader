@@ -1,0 +1,201 @@
+[gd_scene load_steps=35 format=3 uid="uid://xi3ybp7mrio2"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Player/PlayerThing.cs" id="1_da8o2"]
+[ext_resource type="Script" path="res://Assets/Scripts/Player/PlayerControls.cs" id="1_g37r6"]
+[ext_resource type="Script" path="res://Assets/Scripts/Player/PlayerInfo.cs" id="2_jjym4"]
+[ext_resource type="Script" path="res://Assets/Scripts/Player/PlayerCamera.cs" id="3_bs0x2"]
+[ext_resource type="PackedScene" uid="uid://cc4ta84dtl6ve" path="res://Assets/Player/Weapons/MachineGunWeapon.tscn" id="4_4obu3"]
+[ext_resource type="PackedScene" uid="uid://c6u64843g6wjy" path="res://Assets/Player/Weapons/GauntletWeapon.tscn" id="4_o2814"]
+[ext_resource type="PackedScene" uid="uid://cipo2kf330daf" path="res://Assets/Player/Weapons/RocketLauncherWeapon.tscn" id="5_jwttf"]
+[ext_resource type="PackedScene" uid="uid://impqrfmfsvha" path="res://Assets/Player/Weapons/ShotgunWeapon.tscn" id="5_mrmdb"]
+[ext_resource type="PackedScene" uid="uid://h6jkwahjjxfk" path="res://Assets/Player/Weapons/GrenadeLauncherWeapon.tscn" id="6_mcduy"]
+[ext_resource type="Script" path="res://Assets/ThirdParty/MultiAudioListener/VirtualAudioListener.cs" id="6_ve4m7"]
+[ext_resource type="PackedScene" uid="uid://dpl55sl78gnh4" path="res://Assets/Player/Weapons/PlasmagunWeapon.tscn" id="6_yhj32"]
+[ext_resource type="Script" path="res://Assets/ThirdParty/MultiAudioListener/MultiAudioStream.cs" id="7_qljl7"]
+[ext_resource type="PackedScene" uid="uid://c5cu5briye1ry" path="res://Assets/Player/Weapons/LightningGunWeapon.tscn" id="7_vw7rq"]
+[ext_resource type="PackedScene" uid="uid://bblybo8kkck16" path="res://Assets/Player/Weapons/RailgunWeapon.tscn" id="8_cbubn"]
+[ext_resource type="PackedScene" uid="uid://cuxddhbt7p0lt" path="res://Assets/Player/Weapons/BFG10KWeapon.tscn" id="9_sanay"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/InterpolatedTransform.cs" id="10_h25w0"]
+[ext_resource type="PackedScene" uid="uid://qov23ls4iuhu" path="res://Assets/Player/PlayerPostProcessing.tscn" id="11_uirmt"]
+[ext_resource type="PackedScene" uid="uid://cu665s4tjooo2" path="res://Assets/Player/Weapons/NailgunWeapon.tscn" id="13_r5q71"]
+[ext_resource type="PackedScene" uid="uid://is7qx5pq84vw" path="res://Assets/Player/Weapons/HeavyMachineGunWeapon.tscn" id="13_r375w"]
+[ext_resource type="PackedScene" uid="uid://dhlhrcn0t2mq7" path="res://Assets/Player/Weapons/ChainGunWeapon.tscn" id="13_was2b"]
+[ext_resource type="PackedScene" uid="uid://dior35ig7yu0j" path="res://Assets/Player/Weapons/ProxLauncherWeapon.tscn" id="15_cj0cb"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_u8oij"]
+height = 1.6
+
+[sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_q405c"]
+length = 0.8
+
+[sub_resource type="Animation" id="Animation_yedjv"]
+resource_name = "fall"
+length = 0.6
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../PlayerInfo/InterpolatedTransform/ViewCamera/WeaponAnimation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 0.2, 1, 0, -0.15, 0, 0.6, 1, 0, 0, 0)
+
+[sub_resource type="Animation" id="Animation_yomay"]
+resource_name = "idle"
+length = 0.6
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../PlayerInfo/InterpolatedTransform/ViewCamera/WeaponAnimation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_isu5b"]
+_data = {
+"fall": SubResource("Animation_yedjv"),
+"idle": SubResource("Animation_yomay")
+}
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_yx8dx"]
+
+[sub_resource type="AnimationNodeAdd2" id="AnimationNodeAdd2_yopqq"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_vyihg"]
+animation = &"fall"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_c054x"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1dy3t"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_sc16g"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_vxboy"]
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_yx8dx")
+nodes/TimeScale/position = Vector2(80, 360)
+nodes/depth/node = SubResource("AnimationNodeAdd2_yopqq")
+nodes/depth/position = Vector2(260, 260)
+nodes/fall/node = SubResource("AnimationNodeAnimation_vyihg")
+nodes/fall/position = Vector2(-80, 380)
+nodes/fall_shot/node = SubResource("AnimationNodeOneShot_c054x")
+nodes/fall_shot/position = Vector2(443, 105)
+nodes/idle/node = SubResource("AnimationNodeAnimation_sc16g")
+nodes/idle/position = Vector2(100, 220)
+"nodes/idle 2/node" = SubResource("AnimationNodeAnimation_1dy3t")
+"nodes/idle 2/position" = Vector2(180, 60)
+nodes/output/position = Vector2(760, 80)
+node_connections = [&"TimeScale", 0, &"fall", &"depth", 0, &"idle", &"depth", 1, &"TimeScale", &"fall_shot", 0, &"idle 2", &"fall_shot", 1, &"depth", &"output", 0, &"fall_shot"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_xhpms"]
+radius = 0.1
+
+[node name="Player" type="CharacterBody3D" node_paths=PackedStringArray("Torso", "Feet", "playerInfo", "playerControls", "audioStream", "stepAudioStream", "player") groups=["Player"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+collision_layer = 64
+collision_mask = 32765
+input_ray_pickable = false
+axis_lock_angular_x = true
+axis_lock_angular_z = true
+script = ExtResource("1_da8o2")
+modulate = Color(0.313726, 0.631373, 0.803922, 1)
+Torso = NodePath("Torso")
+Feet = NodePath("Feet")
+playerInfo = NodePath("PlayerInfo")
+playerControls = NodePath("PlayerControls")
+audioStream = NodePath("PlayerVoiceAudioStream")
+stepAudioStream = NodePath("StepAudioStream")
+player = NodePath("PlayerControls/PlayerModel")
+
+[node name="Torso" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CapsuleShape3D_u8oij")
+
+[node name="Feet" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+shape = SubResource("SeparationRayShape3D_q405c")
+
+[node name="PlayerControls" type="Node3D" parent="." node_paths=PackedStringArray("playerInfo", "playerThing", "playerCamera", "weaponPositionAnimation")]
+script = ExtResource("1_g37r6")
+playerInfo = NodePath("../PlayerInfo")
+playerThing = NodePath("..")
+playerCamera = NodePath("../PlayerInfo/MainCameras")
+weaponPositionAnimation = NodePath("AnimationTree")
+
+[node name="PlayerModel" type="Node3D" parent="PlayerControls"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerControls"]
+deterministic = true
+libraries = {
+"": SubResource("AnimationLibrary_isu5b")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="PlayerControls"]
+active = false
+tree_root = SubResource("AnimationNodeBlendTree_vxboy")
+anim_player = NodePath("../AnimationPlayer")
+parameters/TimeScale/scale = 1.0
+parameters/depth/add_amount = 0.0
+parameters/fall_shot/active = false
+parameters/fall_shot/internal_active = false
+parameters/fall_shot/request = 0
+
+[node name="PlayerInfo" type="Node3D" parent="." node_paths=PackedStringArray("playerControls", "playerCamera", "audioStream", "playerThing", "playerPostProcessing", "WeaponHand")]
+script = ExtResource("2_jjym4")
+playerControls = NodePath("../PlayerControls")
+playerCamera = NodePath("MainCameras")
+audioStream = NodePath("../PlayerVoiceAudioStream")
+playerThing = NodePath("..")
+playerPostProcessing = NodePath("InterpolatedTransform/PostProcessing")
+WeaponHand = NodePath("InterpolatedTransform/ViewCamera/WeaponAnimation/WeaponHand")
+WeaponPrefabs = [ExtResource("4_o2814"), ExtResource("4_4obu3"), ExtResource("5_mrmdb"), ExtResource("6_mcduy"), ExtResource("5_jwttf"), ExtResource("7_vw7rq"), ExtResource("8_cbubn"), ExtResource("6_yhj32"), ExtResource("9_sanay"), null, ExtResource("13_r5q71"), ExtResource("13_was2b"), ExtResource("15_cj0cb"), ExtResource("13_r375w")]
+
+[node name="MainCameras" type="Node3D" parent="PlayerInfo" node_paths=PackedStringArray("playerControls", "ThirdPerson", "ViewCamera", "playerPostProcessing")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+script = ExtResource("3_bs0x2")
+playerControls = NodePath("../../PlayerControls")
+ThirdPerson = NodePath("../InterpolatedTransform/SpringArm3D/ThirdPersonCamera")
+ViewCamera = NodePath("../InterpolatedTransform/ViewCamera")
+playerPostProcessing = NodePath("../InterpolatedTransform/PostProcessing")
+
+[node name="VirtualAudioListener" type="Node3D" parent="PlayerInfo"]
+script = ExtResource("6_ve4m7")
+
+[node name="InterpolatedTransform" type="Node3D" parent="PlayerInfo" node_paths=PackedStringArray("Source", "interpolationReset")]
+script = ExtResource("10_h25w0")
+Source = NodePath("../MainCameras")
+interpolationReset = NodePath("../../PlayerControls")
+
+[node name="ViewCamera" type="Camera3D" parent="PlayerInfo/InterpolatedTransform"]
+cull_mask = 0
+fov = 90.0
+near = 0.1
+far = 300.0
+
+[node name="WeaponAnimation" type="Node3D" parent="PlayerInfo/InterpolatedTransform/ViewCamera"]
+
+[node name="WeaponHand" type="Node3D" parent="PlayerInfo/InterpolatedTransform/ViewCamera/WeaponAnimation"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="PlayerInfo/InterpolatedTransform"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0, 0)
+collision_mask = 32708
+shape = SubResource("SphereShape3D_xhpms")
+spring_length = 2.5
+margin = 0.05
+
+[node name="ThirdPersonCamera" type="Camera3D" parent="PlayerInfo/InterpolatedTransform/SpringArm3D"]
+cull_mask = 0
+near = 0.1
+far = 300.0
+
+[node name="PostProcessing" parent="PlayerInfo/InterpolatedTransform" instance=ExtResource("11_uirmt")]
+
+[node name="PlayerVoiceAudioStream" type="Node3D" parent="."]
+script = ExtResource("7_qljl7")
+Bus = "VoicesBus"
+
+[node name="StepAudioStream" type="Node3D" parent="."]
+script = ExtResource("7_qljl7")
+Bus = "FXBus"

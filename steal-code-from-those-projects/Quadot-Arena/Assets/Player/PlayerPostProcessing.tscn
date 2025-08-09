@@ -1,0 +1,617 @@
+[gd_scene load_steps=29 format=3 uid="uid://qov23ls4iuhu"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Player/PlayerPostProcessing.cs" id="1_maglr"]
+[ext_resource type="Script" path="res://Assets/Scripts/Player/PlayerHUD.cs" id="1_ubqha"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/NodeAnimation.cs" id="2_2cprp"]
+[ext_resource type="Texture2D" uid="uid://ddbd10afb4ltf" path="res://Assets/Textures/pain_flash.png" id="3_cwmu1"]
+[ext_resource type="Material" uid="uid://cpth41nj3vmg2" path="res://Assets/Materials/normalDepthTexture.tres" id="4_jcn6a"]
+[ext_resource type="Texture2D" uid="uid://cx8oxtpvs8p2u" path="res://Assets/Textures/pickup_flash.png" id="4_txoxd"]
+[ext_resource type="FontFile" uid="uid://dr71vpawd8wrt" path="res://Assets/Player/GUI/Fonts/Quark Storm Condensed.ttf" id="7_4bgd3"]
+
+[sub_resource type="Animation" id="Animation_ic6nf"]
+resource_name = "dead"
+loop_mode = 1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0.259, 0.966)
+
+[sub_resource type="Animation" id="Animation_7pvft"]
+resource_name = "idle"
+loop_mode = 1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.25, 1, 0, 0, 0.013, 1, 0.5, 1, 0, 0, 0, 1, 0.75, 1, 0, 0, -0.013, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_q4lfx"]
+resource_name = "look_left"
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0, -0.301, 0, 0.954)
+
+[sub_resource type="Animation" id="Animation_4dj4l"]
+resource_name = "look_right"
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0, 0.301, 0, 0.954)
+
+[sub_resource type="Animation" id="Animation_lwhr0"]
+resource_name = "pain"
+length = 0.5
+tracks/0/type = "scale_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 1, 1, 1, 0.25, 1, 1.3, 1.3, 1.3, 0.5, 1, 1, 1, 1)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_pxr8j"]
+_data = {
+"dead": SubResource("Animation_ic6nf"),
+"idle": SubResource("Animation_7pvft"),
+"look_left": SubResource("Animation_q4lfx"),
+"look_right": SubResource("Animation_4dj4l"),
+"pain": SubResource("Animation_lwhr0")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_lpxt0"]
+animation = &"pain"
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_t4d4d"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_e4qut"]
+animation = &"dead"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_yh43a"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_memv6"]
+animation = &"look_left"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hfyu3"]
+animation = &"look_right"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_r8imu"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_memv6")
+blend_point_0/pos = -1.0
+blend_point_1/node = SubResource("AnimationNodeAnimation_hfyu3")
+blend_point_1/pos = 1.0
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_rf8w4"]
+mix_mode = 1
+
+[sub_resource type="AnimationNodeAdd2" id="AnimationNodeAdd2_r0fmo"]
+
+[sub_resource type="AnimationNodeAdd2" id="AnimationNodeAdd2_xbgmm"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_x0rcd"]
+graph_offset = Vector2(109.989, 57.3235)
+nodes/Animation/node = SubResource("AnimationNodeAnimation_lpxt0")
+nodes/Animation/position = Vector2(780, 340)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_t4d4d")
+nodes/TimeScale/position = Vector2(420, -40)
+nodes/dead_angle/node = SubResource("AnimationNodeAnimation_e4qut")
+nodes/dead_angle/position = Vector2(360, 120)
+nodes/idle_look/node = SubResource("AnimationNodeAnimation_yh43a")
+nodes/idle_look/position = Vector2(260, -20)
+nodes/left_right/node = SubResource("AnimationNodeBlendSpace1D_r8imu")
+nodes/left_right/position = Vector2(540, 220)
+nodes/output/position = Vector2(1260, 180)
+nodes/pain_shot/node = SubResource("AnimationNodeOneShot_rf8w4")
+nodes/pain_shot/position = Vector2(980, 200)
+nodes/side_limit/node = SubResource("AnimationNodeAdd2_r0fmo")
+nodes/side_limit/position = Vector2(760, 120)
+nodes/up_limit/node = SubResource("AnimationNodeAdd2_xbgmm")
+nodes/up_limit/position = Vector2(600, -40)
+node_connections = [&"TimeScale", 0, &"idle_look", &"output", 0, &"pain_shot", &"pain_shot", 0, &"side_limit", &"pain_shot", 1, &"Animation", &"side_limit", 0, &"up_limit", &"side_limit", 1, &"left_right", &"up_limit", 0, &"TimeScale", &"up_limit", 1, &"dead_angle"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_h6a68"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_3c74r"]
+states/Look/node = SubResource("AnimationNodeBlendTree_x0rcd")
+states/Look/position = Vector2(338, 45)
+states/Start/position = Vector2(183, 114)
+transitions = ["Start", "Look", SubResource("AnimationNodeStateMachineTransition_h6a68")]
+
+[sub_resource type="QuadMesh" id="QuadMesh_0iqvi"]
+flip_faces = true
+size = Vector2(2, 2)
+
+[sub_resource type="QuadMesh" id="QuadMesh_30o3k"]
+flip_faces = true
+size = Vector2(2, 2)
+
+[node name="PostProcessing" type="Node3D" node_paths=PackedStringArray("ViewPortCamera", "NormalDepthCamera", "ViewPort", "NormalDepthViewPort", "playerHUD")]
+script = ExtResource("1_maglr")
+ViewPortCamera = NodePath("ViewPortCamera")
+NormalDepthCamera = NodePath("NormalDepthCamera")
+ViewPort = NodePath("ViewPortCamera/PlayerViewport")
+NormalDepthViewPort = NodePath("NormalDepthCamera/NormalDepthViewport")
+playerHUD = NodePath("ViewPortCamera/PlayerHUD")
+
+[node name="ViewPortCamera" type="Camera3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 2)
+cull_mask = 0
+near = 0.01
+far = 300.0
+
+[node name="ViewHeadContainer" type="Node3D" parent="ViewPortCamera"]
+transform = Transform3D(-3.58063e-08, -2.50718e-08, 1, -0.573576, 0.819152, 0, -0.819152, -0.573576, -4.37114e-08, 0, -1, -1.5)
+
+[node name="ViewHead" type="Node3D" parent="ViewPortCamera/ViewHeadContainer"]
+transform = Transform3D(0.86587, -0.500269, 0, 0.500269, 0.86587, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="ViewPortCamera/ViewHeadContainer"]
+deterministic = true
+root_node = NodePath("../ViewHead")
+libraries = {
+"": SubResource("AnimationLibrary_pxr8j")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="ViewPortCamera/ViewHeadContainer"]
+active = false
+root_node = NodePath("../ViewHead")
+tree_root = SubResource("AnimationNodeStateMachine_3c74r")
+anim_player = NodePath("../AnimationPlayer")
+parameters/Look/TimeScale/scale = 1.0
+parameters/Look/left_right/blend_position = 0
+parameters/Look/pain_shot/active = false
+parameters/Look/pain_shot/internal_active = false
+parameters/Look/pain_shot/request = 0
+parameters/Look/side_limit/add_amount = 1.0
+parameters/Look/up_limit/add_amount = 0.0
+
+[node name="ArmorContainer" type="Node3D" parent="ViewPortCamera"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3, -2.65, -4)
+
+[node name="ArmorAnimation" type="Node3D" parent="ViewPortCamera/ArmorContainer"]
+script = ExtResource("2_2cprp")
+rotEnable = true
+rotFPS = 50.0
+
+[node name="AmmoContainer" type="Node3D" parent="ViewPortCamera"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -4.35, -2.2, -6)
+
+[node name="AmmoAnimation" type="Node3D" parent="ViewPortCamera/AmmoContainer"]
+script = ExtResource("2_2cprp")
+rotEnable = true
+rotFPS = 40.0
+
+[node name="PlayerHUD" type="MeshInstance3D" parent="ViewPortCamera" node_paths=PackedStringArray("viewHeadContainer", "ArmorContainer", "AmmoContainer", "WeaponContainer", "viewHead", "headAnimation", "healthLabel", "armorLabel", "weaponLabel", "ammoLabel", "weaponIcon", "crossHair", "pickUpIcon", "pickUpText", "powerUpIcon", "powerUpText", "playerName", "deathsText", "fragsText", "holdableItemIcon")]
+layers = 0
+extra_cull_margin = 0.1
+mesh = SubResource("QuadMesh_0iqvi")
+skeleton = NodePath("../..")
+script = ExtResource("1_ubqha")
+painEffect = ExtResource("3_cwmu1")
+pickupEffect = ExtResource("4_txoxd")
+viewHeadContainer = NodePath("../ViewHeadContainer")
+ArmorContainer = NodePath("../ArmorContainer")
+AmmoContainer = NodePath("../AmmoContainer")
+WeaponContainer = NodePath("WeaponsContainer")
+viewHead = NodePath("../ViewHeadContainer/ViewHead")
+headAnimation = NodePath("../ViewHeadContainer/AnimationTree")
+healthLabel = NodePath("Health")
+armorLabel = NodePath("Armor")
+weaponLabel = NodePath("Weapon")
+ammoLabel = NodePath("Ammo")
+weaponIcon = [NodePath("WeaponsContainer/WeaponIcon_1"), NodePath("WeaponsContainer/WeaponIcon_2"), NodePath("WeaponsContainer/WeaponIcon_3"), NodePath("WeaponsContainer/WeaponIcon_4"), NodePath("WeaponsContainer/WeaponIcon_5"), NodePath("WeaponsContainer/WeaponIcon_6"), NodePath("WeaponsContainer/WeaponIcon_7"), NodePath("WeaponsContainer/WeaponIcon_8"), NodePath("WeaponsContainer/WeaponIcon_9"), NodePath("WeaponsContainer/WeaponIcon_10"), NodePath("WeaponsContainer/WeaponIcon_11"), NodePath("WeaponsContainer/WeaponIcon_12"), NodePath("WeaponsContainer/WeaponIcon_13"), NodePath("WeaponsContainer/WeaponIcon_14")]
+crossHair = NodePath("CrossHair")
+pickUpIcon = NodePath("PickUpIcon")
+pickUpText = NodePath("PickUpText")
+powerUpIcon = [NodePath("PowerUpsContainer/PowerUpIcon_1"), NodePath("PowerUpsContainer/PowerUpIcon_2"), NodePath("PowerUpsContainer/PowerUpIcon_3"), NodePath("PowerUpsContainer/PowerUpIcon_4"), NodePath("PowerUpsContainer/PowerUpIcon_5"), NodePath("PowerUpsContainer/PowerUpIcon_6")]
+powerUpText = [NodePath("PowerUpsContainer/PowerUpText_1"), NodePath("PowerUpsContainer/PowerUpText_2"), NodePath("PowerUpsContainer/PowerUpText_3"), NodePath("PowerUpsContainer/PowerUpText_4"), NodePath("PowerUpsContainer/PowerUpText_5"), NodePath("PowerUpsContainer/PowerUpText_6")]
+playerName = NodePath("Name")
+deathsText = NodePath("Deaths")
+fragsText = NodePath("Frags")
+holdableItemIcon = NodePath("HoldableItemIcon")
+
+[node name="WeaponsContainer" type="Node3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.7, 0)
+
+[node name="WeaponIcon_1" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_2" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_3" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_4" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_5" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_6" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_7" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_8" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.45, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_9" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_10" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.15, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_11" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_12" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.85, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_13" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="WeaponIcon_14" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/WeaponsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.55, 0, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PowerUpsContainer" type="Node3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3, 0.6, 0)
+
+[node name="PowerUpText_1" type="Label3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+offset = Vector2(0, -210)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PowerUpIcon_1" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, -1.1, -2.2)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PowerUpText_2" type="Label3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+offset = Vector2(0, -140)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PowerUpIcon_2" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, -0.72, -2.2)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PowerUpIcon_3" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, -0.34, -2.2)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PowerUpText_3" type="Label3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+offset = Vector2(0, -70)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PowerUpText_4" type="Label3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PowerUpIcon_4" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.05, -2.2)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PowerUpText_5" type="Label3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+offset = Vector2(0, 70)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PowerUpIcon_5" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.43, -2.2)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PowerUpText_6" type="Label3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+offset = Vector2(0, 140)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PowerUpIcon_6" type="Sprite3D" parent="ViewPortCamera/PlayerHUD/PowerUpsContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.81, -2.2)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="CrossHair" type="Sprite3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+layers = 0
+modulate = Color(1, 1, 1, 0.25)
+double_sided = false
+no_depth_test = true
+
+[node name="Health" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(-50, -235)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.917647, 0.627451, 0, 1)
+text = "100"
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="Armor" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(-350, -235)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.917647, 0.627451, 0, 1)
+text = "0"
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="Weapon" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(0, -140)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.988235, 1, 1, 1)
+font = ExtResource("7_4bgd3")
+font_size = 50
+outline_size = 10
+
+[node name="Ammo" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(-350, -150)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.917647, 0.627451, 0, 1)
+text = "0"
+font = ExtResource("7_4bgd3")
+font_size = 120
+outline_size = 0
+horizontal_alignment = 2
+
+[node name="PickUpIcon" type="Sprite3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, -1, -4)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="PickUpText" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+visible = false
+layers = 0
+transparency = 0.4
+offset = Vector2(-500, -100)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.988235, 1, 1, 1)
+font = ExtResource("7_4bgd3")
+font_size = 50
+outline_size = 10
+horizontal_alignment = 0
+
+[node name="HoldableItemIcon" type="Sprite3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -1.8, -3)
+visible = false
+layers = 0
+double_sided = false
+no_depth_test = true
+
+[node name="Name" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(-530, 280)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(1, 0.368627, 0, 1)
+font = ExtResource("7_4bgd3")
+font_size = 50
+outline_size = 10
+horizontal_alignment = 0
+
+[node name="Deaths" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(-10, 280)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.913725, 0.184314, 0.184314, 1)
+text = "0"
+font = ExtResource("7_4bgd3")
+font_size = 50
+outline_size = 10
+horizontal_alignment = 2
+
+[node name="Frags" type="Label3D" parent="ViewPortCamera/PlayerHUD"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+layers = 0
+transparency = 0.4
+offset = Vector2(10, 280)
+double_sided = false
+no_depth_test = true
+texture_filter = 1
+modulate = Color(0.0488692, 0.573594, 0.650645, 1)
+text = "0"
+font = ExtResource("7_4bgd3")
+font_size = 50
+outline_size = 10
+horizontal_alignment = 0
+
+[node name="PlayerViewport" type="SubViewport" parent="ViewPortCamera"]
+size = Vector2i(1280, 720)
+render_target_update_mode = 4
+
+[node name="NormalDepthCamera" type="Camera3D" parent="."]
+visible = false
+cull_mask = 0
+near = 0.1
+far = 300.0
+
+[node name="NormalDepthFilter" type="MeshInstance3D" parent="NormalDepthCamera"]
+layers = 65536
+extra_cull_margin = 0.1
+mesh = SubResource("QuadMesh_30o3k")
+surface_material_override/0 = ExtResource("4_jcn6a")
+
+[node name="NormalDepthViewport" type="SubViewport" parent="NormalDepthCamera"]
+size = Vector2i(1280, 720)
+render_target_clear_mode = 1

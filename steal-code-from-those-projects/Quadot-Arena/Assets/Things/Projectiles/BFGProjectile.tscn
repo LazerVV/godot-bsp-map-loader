@@ -1,0 +1,89 @@
+[gd_scene load_steps=8 format=3 uid="uid://bdjag6sywuono"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Projectiles/BFGBall.cs" id="1_enh3n"]
+[ext_resource type="Script" path="res://Assets/ThirdParty/MultiAudioListener/MultiAudioStream.cs" id="2_50ltg"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/InterpolatedTransform.cs" id="3_03le7"]
+[ext_resource type="PackedScene" uid="uid://cawscbtf8jvhy" path="res://Assets/Things/Projectiles/LightningBolt.tscn" id="5_8uuw7"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/SpriteController.cs" id="5_tesid"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/Data Resources/SpriteData.cs" id="6_ynxl8"]
+
+[sub_resource type="Resource" id="Resource_ml10e"]
+resource_local_to_scene = true
+script = ExtResource("6_ynxl8")
+destroyType = 0
+destroyTimer = 0.0
+Modulate = Color(0, 0, 0, 1)
+
+[node name="BFGProjectile" type="Node3D" node_paths=PackedStringArray("boltOrigin", "audioStream")]
+script = ExtResource("1_enh3n")
+boltOrigin = [NodePath("BoltOrigin1"), NodePath("BoltOrigin2"), NodePath("BoltOrigin3"), NodePath("BoltOrigin4"), NodePath("BoltOrigin5"), NodePath("BoltOrigin6"), NodePath("BoltOrigin7"), NodePath("BoltOrigin8")]
+Bolt = ExtResource("5_8uuw7")
+_humSounds = PackedStringArray("weapons/rocket/rockfly", "weapons/lightning/lg_hum")
+_lifeTime = 3.0
+speed = 30.0
+rotateSpeed = 720
+damageMin = 14
+damageMax = 20
+blastDamage = 14
+explosionRadius = 0.2
+OnDeathSpawn = "BFGExplosion"
+decalMark = "BFGMark"
+SecondaryOnDeathSpawn = "BFGTracerExplosion"
+audioStream = NodePath("MultiAudioStream")
+_onDeathSound = "weapons/rocket/rocklx1a"
+
+[node name="SourceBFG" type="Node3D" parent="."]
+
+[node name="MultiAudioStream" type="Node3D" parent="."]
+script = ExtResource("2_50ltg")
+
+[node name="InterpolatedTransform" type="Node3D" parent="." node_paths=PackedStringArray("Source", "interpolationReset")]
+script = ExtResource("3_03le7")
+Source = NodePath("../SourceBFG")
+interpolationReset = NodePath("..")
+
+[node name="BFGBall" type="Node3D" parent="InterpolatedTransform" node_paths=PackedStringArray("referenceNode")]
+script = ExtResource("5_tesid")
+spriteName = "models/weaphits/bfg01"
+billboard = 1
+spriteData = SubResource("Resource_ml10e")
+referenceNode = NodePath("..")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="InterpolatedTransform"]
+layers = 255
+light_color = Color(0.423529, 0.8, 0.239216, 1)
+light_energy = 5.0
+light_bake_mode = 0
+omni_shadow_mode = 0
+
+[node name="BoltOrigin1" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin2" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin3" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin4" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin5" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin6" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin7" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false
+
+[node name="BoltOrigin8" type="Node3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+visible = false

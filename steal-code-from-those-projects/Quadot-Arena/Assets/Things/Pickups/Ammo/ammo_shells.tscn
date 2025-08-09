@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3 uid="uid://bvxapvmn28o6t"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/ThingControllers/ThingController.cs" id="1_1fbyi"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/NodeAnimation.cs" id="2_ndm6c"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/ModelController.cs" id="3_o268j"]
+[ext_resource type="Script" path="res://Assets/Scripts/ThingControllers/ItemPickup.cs" id="5_5g5m5"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_whspm"]
+radius = 0.7
+
+[node name="ammo_shells" type="Node3D" node_paths=PackedStringArray("itemPickup")]
+script = ExtResource("1_1fbyi")
+respawnTime = 30.0
+thingType = 2
+itemPickup = NodePath("Item")
+
+[node name="NodeAnimation" type="Node3D" parent="."]
+script = ExtResource("2_ndm6c")
+rotEnable = true
+rotFPS = 40.0
+posEnable = true
+posAmplitude = 0.1
+posFPS = 5.0
+
+[node name="Shells" type="Node3D" parent="."]
+script = ExtResource("3_o268j")
+modelName = "powerups/ammo/shotgunam"
+castShadows = true
+
+[node name="Item" type="Area3D" parent="." node_paths=PackedStringArray("thingController")]
+collision_layer = 32
+collision_mask = 32704
+monitorable = false
+script = ExtResource("5_5g5m5")
+thingController = NodePath("..")
+itemType = 4
+amount = 10
+PickupSound = "misc/am_pkup"
+PickupIcon = "icons/icona_shotgun"
+PickupText = "Shells"
+
+[node name="Shape" type="CollisionShape3D" parent="Item"]
+shape = SubResource("SphereShape3D_whspm")

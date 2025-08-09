@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://vbdxg44bm8su"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/DestroyAfterTime.cs" id="1_3ij0q"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/ModelController.cs" id="1_ntifi"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/InterpolatedTransform.cs" id="2_l8dnk"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_h38lu"]
+radius = 0.015
+height = 0.12
+
+[node name="MachineGunAmmoCase" type="RigidBody3D"]
+collision_layer = 2
+collision_mask = 32772
+input_ray_pickable = false
+mass = 0.1
+
+[node name="Destroy" type="Node" parent="."]
+script = ExtResource("1_3ij0q")
+destroyTimer = 30.0
+
+[node name="SourceCase" type="Node3D" parent="."]
+
+[node name="Capsule" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_h38lu")
+
+[node name="InterpolatedTransform" type="Node3D" parent="." node_paths=PackedStringArray("Source")]
+script = ExtResource("2_l8dnk")
+Source = NodePath("../SourceCase")
+
+[node name="Case" type="Node3D" parent="InterpolatedTransform"]
+script = ExtResource("1_ntifi")
+modelName = "weapons2/shells/m_shell"
+useLowCountMultiMesh = false

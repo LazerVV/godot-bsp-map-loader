@@ -1,0 +1,529 @@
+[gd_scene load_steps=290 format=3 uid="uid://dkadw51a54t5j"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/GameManager.cs" id="2_8g0sx"]
+[ext_resource type="Script" path="res://Assets/Scripts/Managers/MaterialManager.cs" id="3_amftv"]
+[ext_resource type="PackedScene" uid="uid://dsd33pjc1bdk7" path="res://Assets/Scenes/ScoreBoard.tscn" id="3_hqlfm"]
+[ext_resource type="Material" uid="uid://cuswccc2jvs1t" path="res://Assets/Materials/illegal.tres" id="5_7m0rp"]
+[ext_resource type="Material" uid="uid://kujcx0wgflmg" path="res://Assets/Materials/fog.tres" id="5_d2l4q"]
+[ext_resource type="Material" uid="uid://b7a0ll36sihim" path="res://Assets/Materials/default.tres" id="5_is83x"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/Data Resources/SoundData.cs" id="5_wdlai"]
+[ext_resource type="Material" uid="uid://dx20p677lxv8l" path="res://Assets/Materials/transparentDefault.tres" id="6_fojn5"]
+[ext_resource type="Material" uid="uid://bxnkqiouvmut0" path="res://Assets/Materials/defaultLightMap.tres" id="6_i1nl1"]
+[ext_resource type="AudioStream" uid="uid://bn1dyxhk3ad4y" path="res://Assets/Sounds/weapons/BFG10K.wav" id="6_qhnn0"]
+[ext_resource type="PackedScene" uid="uid://xi3ybp7mrio2" path="res://Assets/Player/Player.tscn" id="7_rdgk2"]
+[ext_resource type="Material" uid="uid://b4co3lx7imeoo" path="res://Assets/Materials/transparentLightMap.tres" id="7_wtcy7"]
+[ext_resource type="Script" path="res://Assets/Scripts/Managers/ClusterPVSManager.cs" id="8_vpkit"]
+[ext_resource type="Script" path="res://Assets/Scripts/Managers/ThingsManager.cs" id="9_71i1l"]
+[ext_resource type="Material" uid="uid://85rrj4iybhqg" path="res://Assets/Materials/decals.tres" id="9_xagb5"]
+[ext_resource type="Material" uid="uid://dat36ek6x8gj6" path="res://Assets/Materials/baseCamera.tres" id="11_1vb85"]
+[ext_resource type="PackedScene" uid="uid://0ys87si5lkyg" path="res://Assets/Things/FX/WeaponHits/BulletHit.tscn" id="11_rh4dk"]
+[ext_resource type="Script" path="res://Assets/ThirdParty/MultiAudioListener/MultiAudioListener.cs" id="12_8hqnu"]
+[ext_resource type="Material" uid="uid://b1ikorkoscxl3" path="res://Assets/Materials/underWaterCamera.tres" id="12_8i4o0"]
+[ext_resource type="PackedScene" uid="uid://dw2it7pnea5rd" path="res://Assets/Things/Projectiles/RocketProjectile.tscn" id="12_6703q"]
+[ext_resource type="PackedScene" uid="uid://cbqf3w6nv54ds" path="res://Assets/Things/FX/WeaponHits/RocketExplosion.tscn" id="13_l5hcy"]
+[ext_resource type="PackedScene" uid="uid://bki6ifu2qtbfo" path="res://Assets/Player/PlayerViewPort.tscn" id="13_tu0mj"]
+[ext_resource type="PackedScene" uid="uid://c5tu2rku1v7om" path="res://Assets/Things/Projectiles/PlasmaProjectile.tscn" id="15_rsp03"]
+[ext_resource type="Image" uid="uid://s4looumsvxbj" path="res://Assets/Textures/BFGTracer/bfg_tracer1.tga" id="16_clfgu"]
+[ext_resource type="PackedScene" uid="uid://bn0i6jh0khogi" path="res://Assets/Things/FX/WeaponHits/PlasmaExplosion.tscn" id="16_xhuyt"]
+[ext_resource type="Image" uid="uid://bhfaicqtiw8fd" path="res://Assets/Textures/BFGTracer/bfg_tracer2.tga" id="17_07kil"]
+[ext_resource type="PackedScene" uid="uid://wtmx7f0u7egf" path="res://Assets/Things/FX/Damage/BulletMark.tscn" id="17_au5sd"]
+[ext_resource type="Material" uid="uid://be078eo5sxkb6" path="res://Assets/Materials/painModel.tres" id="17_kbv0p"]
+[ext_resource type="Image" uid="uid://dqncv2hv74xau" path="res://Assets/Textures/BFGTracer/bfg_tracer3.tga" id="18_7vq48"]
+[ext_resource type="PackedScene" uid="uid://vbdxg44bm8su" path="res://Assets/Things/Debris/MachineGunAmmoCase.tscn" id="18_dkfmq"]
+[ext_resource type="PackedScene" uid="uid://br3trl8hap8q5" path="res://Assets/Things/FX/WeaponHits/LightningExplosion.tscn" id="18_nyem1"]
+[ext_resource type="PackedScene" uid="uid://ca1g7ktte6e7h" path="res://Assets/Things/FX/Damage/PlasmaMark.tscn" id="18_occpy"]
+[ext_resource type="PackedScene" uid="uid://bt2wbekblvsnd" path="res://Assets/Things/Debris/ShotgunShell.tscn" id="19_flqi0"]
+[ext_resource type="PackedScene" uid="uid://p0c8bbt6juft" path="res://Assets/Things/FX/Damage/ShotMark.tscn" id="19_q0xlo"]
+[ext_resource type="PackedScene" uid="uid://wfrbjpq2b7t7" path="res://Assets/Things/Pickups/Ammo/ammo_bullets.tscn" id="19_qacws"]
+[ext_resource type="PackedScene" uid="uid://dkn4pgx2b86gy" path="res://Assets/Things/FX/Damage/BurnMark.tscn" id="19_rmn3i"]
+[ext_resource type="PackedScene" uid="uid://bvxapvmn28o6t" path="res://Assets/Things/Pickups/Ammo/ammo_shells.tscn" id="20_88qir"]
+[ext_resource type="Image" uid="uid://dnxb6lp7sa1bn" path="res://Assets/Textures/Blood/blood1.tga" id="20_aerov"]
+[ext_resource type="PackedScene" uid="uid://dmh4ni5reuxgo" path="res://Assets/Things/FX/WeaponHits/BFGExplosion.tscn" id="20_l0jeh"]
+[ext_resource type="PackedScene" uid="uid://da17o45p1fpov" path="res://Assets/Things/Pickups/Ammo/ammo_cells.tscn" id="21_gcmhg"]
+[ext_resource type="PackedScene" uid="uid://cytib7fikj5yo" path="res://Assets/Things/FX/WeaponHits/RailExplosion.tscn" id="21_gxmhp"]
+[ext_resource type="Image" uid="uid://e3j31puuo1or" path="res://Assets/Textures/Blood/blood2.tga" id="21_q6y6v"]
+[ext_resource type="Image" uid="uid://bmhr7ywjsyt3d" path="res://Assets/Textures/Blood/blood3.tga" id="22_axq7l"]
+[ext_resource type="PackedScene" uid="uid://cw5fdj3otdth" path="res://Assets/Things/FX/WeaponHits/GrenadeExplosion.tscn" id="22_i5gi6"]
+[ext_resource type="PackedScene" uid="uid://bdjag6sywuono" path="res://Assets/Things/Projectiles/BFGProjectile.tscn" id="22_jphxe"]
+[ext_resource type="PackedScene" uid="uid://djgfyife6qicb" path="res://Assets/Things/Pickups/Ammo/ammo_rockets.tscn" id="22_xc5q4"]
+[ext_resource type="Image" uid="uid://c5b1evi8nwpc5" path="res://Assets/Textures/Blood/blood4.tga" id="23_17lpe"]
+[ext_resource type="PackedScene" uid="uid://cwxdv8qsopm5" path="res://Assets/Things/FX/Damage/LightningMark.tscn" id="24_5opha"]
+[ext_resource type="PackedScene" uid="uid://dxnvn5gs552we" path="res://Assets/Things/Pickups/Weapons/weapon_shotgun.tscn" id="24_5ts3k"]
+[ext_resource type="Image" uid="uid://c4katdtb2krvd" path="res://Assets/Textures/Blood/blood5.tga" id="24_npn2v"]
+[ext_resource type="PackedScene" uid="uid://cawscbtf8jvhy" path="res://Assets/Things/Projectiles/LightningBolt.tscn" id="24_ua1m5"]
+[ext_resource type="Image" uid="uid://851r3idl4tg4" path="res://Assets/Textures/Blood/blood6.tga" id="25_5aknc"]
+[ext_resource type="PackedScene" uid="uid://b2uuscwsgltoa" path="res://Assets/Things/Pickups/Weapons/weapon_plasmagun.tscn" id="25_5i6m0"]
+[ext_resource type="PackedScene" uid="uid://c1t32gv5y7icn" path="res://Assets/Things/Projectiles/RailTrail.tscn" id="25_44wy8"]
+[ext_resource type="PackedScene" uid="uid://bll72amm2jjvr" path="res://Assets/Things/Pickups/Weapons/weapon_rocketlauncher.tscn" id="26_6gxqa"]
+[ext_resource type="Image" uid="uid://bofx66cqg2535" path="res://Assets/Textures/Blood/blood7.tga" id="26_61pdm"]
+[ext_resource type="PackedScene" uid="uid://bllvvxjn12njn" path="res://Assets/Things/Projectiles/GrenadeProjectile.tscn" id="27_5gm05"]
+[ext_resource type="PackedScene" uid="uid://1aju6wu5vmtu" path="res://Assets/Things/Pickups/Health/item_health.tscn" id="27_5pqil"]
+[ext_resource type="Image" uid="uid://dqgr0oxudhmhd" path="res://Assets/Textures/Blood/blood8.tga" id="27_m0ak5"]
+[ext_resource type="PackedScene" uid="uid://ccfka8e12un61" path="res://Assets/Things/FX/WeaponHits/BFGTracerExplosion.tscn" id="28_5ibyp"]
+[ext_resource type="Image" uid="uid://bbwddum3oixla" path="res://Assets/Textures/plasma_mark.tga" id="28_240q0"]
+[ext_resource type="PackedScene" uid="uid://00qa1h4uy2f7" path="res://Assets/Things/Pickups/Health/item_health_large.tscn" id="28_dpe7f"]
+[ext_resource type="PackedScene" uid="uid://4xiwipor4bi8" path="res://Assets/Things/FX/Damage/BFGMark.tscn" id="29_l1cqu"]
+[ext_resource type="PackedScene" uid="uid://dx8ra3pfwg8c" path="res://Assets/Things/Pickups/Armor/item_armor_body.tscn" id="29_slqlw"]
+[ext_resource type="PackedScene" uid="uid://ce5jta4khvm71" path="res://Assets/Things/Pickups/Armor/item_armor_shard.tscn" id="30_8nwr7"]
+[ext_resource type="PackedScene" uid="uid://bdbbkp6cfx1m2" path="res://Assets/Things/Pickups/Ammo/ammo_lightning.tscn" id="30_kksrp"]
+[ext_resource type="PackedScene" uid="uid://bgc0fdktol7v8" path="res://Assets/Things/Pickups/Health/item_health_small.tscn" id="30_u4mvd"]
+[ext_resource type="PackedScene" uid="uid://b32kn8otikx3m" path="res://Assets/Things/Pickups/Health/item_health_mega.tscn" id="31_g11tp"]
+[ext_resource type="PackedScene" uid="uid://tpqffol7j0t" path="res://Assets/Things/GamePlay/target/target_speaker.tscn" id="31_tr8jk"]
+[ext_resource type="PackedScene" uid="uid://bmyv04u863exh" path="res://Assets/Things/GamePlay/target/target_position.tscn" id="32_b20ey"]
+[ext_resource type="PackedScene" uid="uid://duayunnb324b7" path="res://Assets/Things/FX/Damage/RailMark.tscn" id="32_kea4x"]
+[ext_resource type="PackedScene" uid="uid://bpu8u0uujgexx" path="res://Assets/Things/Pickups/Armor/item_armor_combat.tscn" id="32_pviff"]
+[ext_resource type="PackedScene" uid="uid://dcd4jomshlogt" path="res://Assets/Things/GamePlay/info/info_player_deathmatch.tscn" id="33_epjyi"]
+[ext_resource type="PackedScene" uid="uid://bqw0rqw0imck6" path="res://Assets/Things/GamePlay/func/func_timer.tscn" id="34_nkc1v"]
+[ext_resource type="PackedScene" uid="uid://7xtnpc5tfejv" path="res://Assets/Things/GamePlay/trigger/trigger_push.tscn" id="35_1ytnq"]
+[ext_resource type="PackedScene" uid="uid://dlx7d5gxe6lnj" path="res://Assets/Things/Pickups/Ammo/ammo_bfg.tscn" id="35_frbmv"]
+[ext_resource type="PackedScene" uid="uid://b4tn1bjywoe4s" path="res://Assets/Things/GamePlay/trigger/trigger_teleport.tscn" id="36_7m5u6"]
+[ext_resource type="PackedScene" uid="uid://co3yi5bf647t1" path="res://Assets/Things/Pickups/PowerUps/item_quad.tscn" id="37_60yxr"]
+[ext_resource type="PackedScene" uid="uid://bobtudkcmis3u" path="res://Assets/Things/Pickups/Weapons/weapon_lightning.tscn" id="37_ho6wf"]
+[ext_resource type="PackedScene" uid="uid://bv34dp76ma2dk" path="res://Assets/Things/GamePlay/misc/misc_teleporter_dest.tscn" id="37_kkxgn"]
+[ext_resource type="PackedScene" uid="uid://bdkb25lv7sp7t" path="res://Assets/Things/GamePlay/func/func_door.tscn" id="38_2vxeb"]
+[ext_resource type="PackedScene" uid="uid://brww1kwpkmx6a" path="res://Assets/Things/FX/Particles/Blood.tscn" id="38_hwtk2"]
+[ext_resource type="PackedScene" uid="uid://w6lesdgsukjc" path="res://Assets/Things/GamePlay/func/func_button.tscn" id="39_63dug"]
+[ext_resource type="PackedScene" uid="uid://d3jcvshatpij6" path="res://Assets/Things/FX/Particles/BloodTrail.tscn" id="39_vtbss"]
+[ext_resource type="PackedScene" uid="uid://dym5swdk61pvo" path="res://Assets/Things/Pickups/Ammo/ammo_slugs.tscn" id="40_a7icm"]
+[ext_resource type="PackedScene" uid="uid://crc0nbdbusq2l" path="res://Assets/Things/GamePlay/func/func_static.tscn" id="40_xap66"]
+[ext_resource type="PackedScene" uid="uid://bddv7ddaa8jd0" path="res://Assets/Things/GamePlay/trigger/trigger_multiple.tscn" id="40_yfkkd"]
+[ext_resource type="PackedScene" uid="uid://51iutkkelrci" path="res://Assets/Things/Pickups/Weapons/weapon_bfg.tscn" id="42_f3nx2"]
+[ext_resource type="PackedScene" uid="uid://db78l7apwrpot" path="res://Assets/Things/FX/Particles/Puff.tscn" id="42_fuobq"]
+[ext_resource type="PackedScene" uid="uid://3kdaobbeqoxp" path="res://Assets/Things/Pickups/PowerUps/item_haste.tscn" id="42_lo0q4"]
+[ext_resource type="PackedScene" uid="uid://sdf2rj3p3tbh" path="res://Assets/Things/Pickups/PowerUps/item_regen.tscn" id="43_0nxgr"]
+[ext_resource type="PackedScene" uid="uid://bat7yn34ag74j" path="res://Assets/Things/Pickups/Ammo/ammo_grenades.tscn" id="43_por0y"]
+[ext_resource type="PackedScene" uid="uid://dpswf1hxglr0x" path="res://Assets/Things/FX/BloodMarks/BloodMark1.tscn" id="43_xrsn8"]
+[ext_resource type="PackedScene" uid="uid://dcu0dylsbjrp0" path="res://Assets/Things/GamePlay/worldspawn.tscn" id="44_er3mv"]
+[ext_resource type="PackedScene" uid="uid://78i07xdk6vt4" path="res://Assets/Things/Pickups/PowerUps/holdable_teleporter.tscn" id="44_nb564"]
+[ext_resource type="PackedScene" uid="uid://c3wij33wsqbg" path="res://Assets/Things/GamePlay/trigger/trigger_hurt.tscn" id="45_ge4jt"]
+[ext_resource type="PackedScene" uid="uid://dumbqwobmx7ko" path="res://Assets/Things/GamePlay/info/info_notnull.tscn" id="46_6njgx"]
+[ext_resource type="PackedScene" uid="uid://67c1cxd5hoar" path="res://Assets/Things/FX/BloodMarks/BloodMark2.tscn" id="46_h6uxe"]
+[ext_resource type="PackedScene" uid="uid://bwx6v47koleqb" path="res://Assets/Things/GamePlay/func/func_rotating.tscn" id="47_g2dqw"]
+[ext_resource type="PackedScene" uid="uid://bwlq31t2rd807" path="res://Assets/Things/Projectiles/NailProjectile.tscn" id="48_5arwe"]
+[ext_resource type="PackedScene" uid="uid://7pbrpwetygt8" path="res://Assets/Things/Pickups/Weapons/weapon_railgun.tscn" id="48_k36jd"]
+[ext_resource type="PackedScene" uid="uid://c2htilwd1kllr" path="res://Assets/Things/FX/BloodMarks/BloodMark3.tscn" id="48_o5g2n"]
+[ext_resource type="PackedScene" uid="uid://mp5ryxp1smn2" path="res://Assets/Things/GamePlay/misc/misc_portal_camera.tscn" id="48_uv6co"]
+[ext_resource type="PackedScene" uid="uid://p0n8fxq1vf8t" path="res://Assets/Things/GamePlay/misc/misc_portal_surface.tscn" id="49_gicjp"]
+[ext_resource type="PackedScene" uid="uid://dlo5rcwan3lx" path="res://Assets/Things/GamePlay/target/target_location.tscn" id="49_mb0ac"]
+[ext_resource type="PackedScene" uid="uid://bieifq73101vg" path="res://Assets/Things/Projectiles/ProxMinesProjectile.tscn" id="50_mjtb8"]
+[ext_resource type="PackedScene" uid="uid://bimr3d2dbk00j" path="res://Assets/Things/Pickups/Weapons/weapon_grenadelauncher.tscn" id="53_qje8m"]
+[ext_resource type="PackedScene" uid="uid://c54qqfwrdg1fc" path="res://Assets/Things/Gibs/GibAbdomen.tscn" id="54_rkkly"]
+[ext_resource type="PackedScene" uid="uid://c247rthpf7m0u" path="res://Assets/Things/FX/BloodMarks/BloodMark4.tscn" id="54_ylum8"]
+[ext_resource type="PackedScene" uid="uid://c3h67smdbpn1o" path="res://Assets/Things/FX/BloodMarks/BloodMark5.tscn" id="55_2cxke"]
+[ext_resource type="PackedScene" uid="uid://c4y3fqin6vymy" path="res://Assets/Things/Gibs/GibArm.tscn" id="55_f0i75"]
+[ext_resource type="PackedScene" uid="uid://b24hymyo1kel1" path="res://Assets/Things/Gibs/GibBrain.tscn" id="56_6f34d"]
+[ext_resource type="PackedScene" uid="uid://37whhw7y5375" path="res://Assets/Things/FX/BloodMarks/BloodMark6.tscn" id="56_tyh37"]
+[ext_resource type="PackedScene" uid="uid://ie21kkwuksyq" path="res://Assets/Things/FX/BloodMarks/BloodMark7.tscn" id="57_40726"]
+[ext_resource type="PackedScene" uid="uid://dtidc4aw00d6e" path="res://Assets/Things/Gibs/GibChest.tscn" id="57_yotn7"]
+[ext_resource type="PackedScene" uid="uid://c6pqdv17uojq7" path="res://Assets/Things/Gibs/GibFist.tscn" id="58_16pvy"]
+[ext_resource type="PackedScene" uid="uid://buu4veqfyypvx" path="res://Assets/Things/FX/BloodMarks/BloodMark8.tscn" id="58_qsrid"]
+[ext_resource type="PackedScene" uid="uid://canwr3ef4eyrs" path="res://Assets/Things/Gibs/GibFoot.tscn" id="59_byap5"]
+[ext_resource type="PackedScene" uid="uid://byqxrs4xryit5" path="res://Assets/Things/Debris/ItemDrop.tscn" id="59_rmbdm"]
+[ext_resource type="PackedScene" uid="uid://dm3xmjcp36qb5" path="res://Assets/Things/Gibs/GibForearm.tscn" id="60_a3qpk"]
+[ext_resource type="PackedScene" uid="uid://fqklsegp0ojx" path="res://Assets/Things/Gibs/GibIntestine.tscn" id="61_eaowh"]
+[ext_resource type="PackedScene" uid="uid://bwjt75ccw7kyg" path="res://Assets/Things/Gibs/GibLeg.tscn" id="62_chqu0"]
+[ext_resource type="PackedScene" uid="uid://177nrp1rieks" path="res://Assets/Things/Gibs/GibSkull.tscn" id="63_k1tst"]
+[ext_resource type="PackedScene" uid="uid://b4qvk2ioxoc4c" path="res://Assets/Things/Pickups/Ammo/ammo_belt.tscn" id="71_b14fu"]
+[ext_resource type="PackedScene" uid="uid://54aqp6rpprpf" path="res://Assets/Things/Pickups/Ammo/ammo_hmg.tscn" id="71_qny55"]
+[ext_resource type="PackedScene" uid="uid://nqpms0r2fvnm" path="res://Assets/Things/Pickups/Ammo/ammo_pack.tscn" id="71_san3o"]
+[ext_resource type="PackedScene" uid="uid://c5y186nuku7cy" path="res://Assets/Things/Pickups/Ammo/ammo_nails.tscn" id="72_0n01p"]
+[ext_resource type="PackedScene" uid="uid://bnes0v0ntwmmg" path="res://Assets/Things/GamePlay/info/info_player_intermission.tscn" id="74_1t76s"]
+[ext_resource type="PackedScene" uid="uid://nfj4ju6qkqdo" path="res://Assets/Things/GamePlay/func/func_bobbing.tscn" id="76_lanxu"]
+[ext_resource type="PackedScene" uid="uid://dyp5kdutyyc4l" path="res://Assets/Things/Pickups/Ammo/ammo_mines.tscn" id="78_s48ag"]
+[ext_resource type="PackedScene" uid="uid://cwmpgottit0na" path="res://Assets/Things/GamePlay/target/target_relay.tscn" id="79_dvn2g"]
+[ext_resource type="PackedScene" uid="uid://bkiqdp4glmct1" path="res://Assets/Things/GamePlay/target/target_delay.tscn" id="80_bwsan"]
+[ext_resource type="PackedScene" uid="uid://k6bvnispnql3" path="res://Assets/Things/GamePlay/trigger/trigger_always.tscn" id="83_a6fcd"]
+[ext_resource type="PackedScene" uid="uid://bdgbff1p5ko4n" path="res://Assets/Things/Pickups/Weapons/weapon_machinegun.tscn" id="84_hoa3p"]
+[ext_resource type="PackedScene" uid="uid://dbyfx8j7w2bf8" path="res://Assets/Things/GamePlay/target/target_give.tscn" id="88_nvs58"]
+[ext_resource type="PackedScene" uid="uid://bqgf3p2n1en2o" path="res://Assets/Things/Pickups/Weapons/weapon_hmg.tscn" id="92_dbs5t"]
+[ext_resource type="PackedScene" uid="uid://vcyvwg4626pb" path="res://Assets/Things/Pickups/Weapons/weapon_chaingun.tscn" id="94_1nu6c"]
+[ext_resource type="Script" path="res://Assets/Scripts/Managers/AdaptativeMusicManager.cs" id="95_viiyv"]
+[ext_resource type="AudioStream" uid="uid://by58bujxtsieb" path="res://Assets/Music/Tracks/Out/Ambient_1_Outro.ogg" id="96_e3wmk"]
+[ext_resource type="PackedScene" uid="uid://c7e2p6usofrq8" path="res://Assets/Things/Pickups/Weapons/weapon_nailgun.tscn" id="97_4yncb"]
+[ext_resource type="AudioStream" uid="uid://bbh1a7o5ma5ip" path="res://Assets/Music/Tracks/Main/Ambient_1.ogg" id="97_ff5rj"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/Data Resources/AdaptativeTrack.cs" id="98_5huls"]
+[ext_resource type="AudioStream" uid="uid://c040ju5yn4mep" path="res://Assets/Music/Tracks/Out/Ambient_2_Outro.ogg" id="99_bq65s"]
+[ext_resource type="AudioStream" uid="uid://btulamc337i7x" path="res://Assets/Music/Tracks/Main/Ambient_2.ogg" id="100_q7s6t"]
+[ext_resource type="AudioStream" uid="uid://ceckgkf8e3tkm" path="res://Assets/Music/Tracks/Main/Intensity_1.ogg" id="101_6ilvq"]
+[ext_resource type="PackedScene" uid="uid://b4o35hn6n5rwb" path="res://Assets/Things/Pickups/Weapons/weapon_prox_launcher.tscn" id="101_hpla6"]
+[ext_resource type="AudioStream" uid="uid://bwh3k5y57v6ms" path="res://Assets/Music/Tracks/Out/Intensity_2_Outro.ogg" id="102_dislq"]
+[ext_resource type="AudioStream" uid="uid://crgc4bcvb8swc" path="res://Assets/Music/Tracks/Main/Intensity_2.ogg" id="103_ykysf"]
+[ext_resource type="PackedScene" uid="uid://cwft7hduumnwy" path="res://Assets/Things/Pickups/Armor/item_armor_jacket.tscn" id="104_j7abp"]
+[ext_resource type="AudioStream" uid="uid://y1oyoeq7o2ay" path="res://Assets/Music/Tracks/Out/Intensity_3_Outro.ogg" id="104_pvalh"]
+[ext_resource type="AudioStream" uid="uid://0oq4cefv33uo" path="res://Assets/Music/Tracks/Main/Intensity_3.ogg" id="105_l6j8q"]
+[ext_resource type="AudioStream" uid="uid://x1vve4f2kvuw" path="res://Assets/Music/Blends/Alarm.ogg" id="106_q64dm"]
+[ext_resource type="AudioStream" uid="uid://d8hn2jhdbx4x" path="res://Assets/Music/Blends/Big_Hit_Stinger.ogg" id="107_imfew"]
+[ext_resource type="AudioStream" uid="uid://c5bky7v2phnu8" path="res://Assets/Music/Blends/Lond_Sweep_Drone.ogg" id="108_f8x07"]
+[ext_resource type="AudioStream" uid="uid://bw3em04hny83e" path="res://Assets/Music/Blends/Low_Drone_Wubs.ogg" id="109_0k0k0"]
+[ext_resource type="AudioStream" uid="uid://2qggc1hkygq8" path="res://Assets/Music/Blends/Sweep_Drop_Off.ogg" id="110_dxybh"]
+[ext_resource type="PackedScene" uid="uid://ct0tajbntnq7m" path="res://Assets/Things/GamePlay/advertisement.tscn" id="110_ltt47"]
+[ext_resource type="PackedScene" uid="uid://vl5qwu3ral8w" path="res://Assets/Things/GamePlay/team/team_CTF_redspawn.tscn" id="111_1n03y"]
+[ext_resource type="AudioStream" uid="uid://kk5q33151ba3" path="res://Assets/Music/Blends/Wubs.ogg" id="111_2dxqd"]
+[ext_resource type="PackedScene" uid="uid://bfaf1kir22tjk" path="res://Assets/Things/GamePlay/func/func_plat.tscn" id="111_qylle"]
+[ext_resource type="PackedScene" uid="uid://5pob8cgiwtb5" path="res://Assets/Things/Pickups/PowerUps/item_enviro.tscn" id="112_6yhw4"]
+[ext_resource type="AudioStream" uid="uid://ddb8765t61kdp" path="res://Assets/Music/Blends/Drum_Fill_Intro.ogg" id="112_ouf8h"]
+[ext_resource type="PackedScene" uid="uid://cwjemuupx2evp" path="res://Assets/Things/GamePlay/team/team_CTF_bluespawn.tscn" id="112_ow86p"]
+[ext_resource type="PackedScene" uid="uid://0x45wlwk82an" path="res://Assets/Things/Pickups/PowerUps/item_invis.tscn" id="113_fae7k"]
+[ext_resource type="PackedScene" uid="uid://c74uxqi6kx7qb" path="res://Assets/Things/Pickups/PowerUps/item_flight.tscn" id="114_dm6su"]
+[ext_resource type="PackedScene" uid="uid://bcemumvn4bxcg" path="res://Assets/Things/GamePlay/info/info_player_start.tscn" id="125_a8uwy"]
+[ext_resource type="Texture2D" uid="uid://dalvcfjdcb8ku" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_01.png" id="128_50tgk"]
+[ext_resource type="Texture2D" uid="uid://bhuqo72ko56bm" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_02.png" id="129_1wwo8"]
+[ext_resource type="Texture2D" uid="uid://cp2ctco6ym0ni" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_03.png" id="130_8oaf2"]
+[ext_resource type="Texture2D" uid="uid://hr56mkmwvcco" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_04.png" id="131_lccci"]
+[ext_resource type="Texture2D" uid="uid://6fc3shp8qd41" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_05.png" id="132_pjetd"]
+[ext_resource type="Texture2D" uid="uid://ks557o5soe68" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_06.png" id="133_fmh6g"]
+[ext_resource type="Texture2D" uid="uid://bfe5pc7d0bb4k" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_07.png" id="134_m5368"]
+[ext_resource type="PackedScene" uid="uid://b05glkqtlrn04" path="res://Assets/Things/GamePlay/target/target_push.tscn" id="134_xvyx7"]
+[ext_resource type="Texture2D" uid="uid://dn8at6ekxanv1" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_08.png" id="135_stc1s"]
+[ext_resource type="PackedScene" uid="uid://c2t0bu3xdsyh6" path="res://Assets/Things/GamePlay/target/target_teleporter.tscn" id="136_00qju"]
+[ext_resource type="Texture2D" uid="uid://cbbb2yyiccwa1" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_09.png" id="136_4btry"]
+[ext_resource type="Texture2D" uid="uid://ckld0um2lbrv0" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_10.png" id="137_5l1o2"]
+[ext_resource type="Texture2D" uid="uid://br08e1lyqa1bu" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_11.png" id="138_r562h"]
+[ext_resource type="Texture2D" uid="uid://b8bxnim877h2h" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_12.png" id="139_pxmxr"]
+[ext_resource type="Texture2D" uid="uid://bj2atqg7l23jd" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_13.png" id="140_rsdkr"]
+[ext_resource type="Texture2D" uid="uid://ccve462fc0ijl" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_14.png" id="141_13ffd"]
+[ext_resource type="Texture2D" uid="uid://33wgondmjso1" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_15.png" id="142_3c1hk"]
+[ext_resource type="VideoStream" path="res://Assets/Videos/QuakeLive.ogv" id="143_abt02"]
+[ext_resource type="Texture2D" uid="uid://dlw4kna3rluqq" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_16.png" id="143_bie14"]
+[ext_resource type="Texture2D" uid="uid://c2e7vk3ja05xm" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_17.png" id="144_v5icn"]
+[ext_resource type="Texture2D" uid="uid://b4vp14bdei23w" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_18.png" id="145_j87fi"]
+[ext_resource type="PackedScene" uid="uid://cx81ah4ytyb4s" path="res://Assets/Scenes/Console.tscn" id="145_ykqwb"]
+[ext_resource type="PackedScene" uid="uid://bkhsxj4731sj5" path="res://Assets/Things/GamePlay/target/target_remove_powerups.tscn" id="145_ymegc"]
+[ext_resource type="Texture2D" uid="uid://db01rhmwypv1o" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_19.png" id="146_3d2ic"]
+[ext_resource type="Texture2D" uid="uid://bospt2wwjnx7" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_20.png" id="147_xsldo"]
+[ext_resource type="Texture2D" uid="uid://clli0frh25bfw" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_21.png" id="148_bpr3x"]
+[ext_resource type="Texture2D" uid="uid://dy3vlwqytfksa" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_22.png" id="149_27wae"]
+[ext_resource type="Texture2D" uid="uid://ck7vgtu06xov3" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_23.png" id="150_cs0us"]
+[ext_resource type="Texture2D" uid="uid://be0uojx8hvfnp" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_24.png" id="151_2vefy"]
+[ext_resource type="Texture2D" uid="uid://b044ta31berxy" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_25.png" id="152_d31rm"]
+[ext_resource type="Texture2D" uid="uid://cwn0l34xfl66o" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_26.png" id="153_pdvgo"]
+[ext_resource type="Texture2D" uid="uid://bcb4fwdkb6h4t" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_27.png" id="154_dtesq"]
+[ext_resource type="Texture2D" uid="uid://bkbbbfwprew70" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_28.png" id="155_dt50v"]
+[ext_resource type="Texture2D" uid="uid://cmire7t6ognyv" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_29.png" id="156_2j174"]
+[ext_resource type="Texture2D" uid="uid://jmdin7wi6abp" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_30.png" id="157_ltw0b"]
+[ext_resource type="Texture2D" uid="uid://c1pyht3b7wlc2" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_31.png" id="158_3xawa"]
+[ext_resource type="Texture2D" uid="uid://dwwge4mq3s5f5" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_32.png" id="159_cmxa0"]
+[ext_resource type="Texture2D" uid="uid://b8yltuiuvgpft" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_33.png" id="160_7s7qn"]
+[ext_resource type="Texture2D" uid="uid://i35qw55ygg0g" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_34.png" id="161_soj1w"]
+[ext_resource type="Texture2D" uid="uid://ktolfu26hyud" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_35.png" id="162_erucl"]
+[ext_resource type="Texture2D" uid="uid://dwyex5fbnd5u4" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_36.png" id="163_soheo"]
+[ext_resource type="Texture2D" uid="uid://dbk07tg0cwplj" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_37.png" id="164_4hsbj"]
+[ext_resource type="Texture2D" uid="uid://b2ldkjq4g1kcc" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_38.png" id="165_sqbdb"]
+[ext_resource type="Texture2D" uid="uid://cnqr5t0xfrf7v" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_39.png" id="166_6rn4g"]
+[ext_resource type="Texture2D" uid="uid://bu1a0bjoxx3mt" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_40.png" id="167_ac1j3"]
+[ext_resource type="Texture2D" uid="uid://c4ixd57marhxv" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_41.png" id="168_mebaa"]
+[ext_resource type="Texture2D" uid="uid://72it5hays8mg" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_42.png" id="169_18nx8"]
+[ext_resource type="Texture2D" uid="uid://q2xh30ix2g35" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_43.png" id="170_amskc"]
+[ext_resource type="Texture2D" uid="uid://bndaam84e0lv8" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_44.png" id="171_wr6ay"]
+[ext_resource type="Texture2D" uid="uid://daci6iu4dwhcy" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_45.png" id="172_qvsgt"]
+[ext_resource type="Texture2D" uid="uid://dgflltvux7gl0" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_46.png" id="173_bu3tj"]
+[ext_resource type="Texture2D" uid="uid://bq64u2pauol4f" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_47.png" id="174_83rf3"]
+[ext_resource type="Texture2D" uid="uid://428p32nsk2wu" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_48.png" id="175_5uxpg"]
+[ext_resource type="Texture2D" uid="uid://cq3wlfcdrf8yw" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_49.png" id="176_aqnr2"]
+[ext_resource type="Texture2D" uid="uid://i6poqexq3y2g" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_50.png" id="177_sts25"]
+[ext_resource type="Texture2D" uid="uid://c1oic80l8jeqb" path="res://Assets/Player/GUI/Crosshairs/Small/small_crosshair_51.png" id="178_ubsvi"]
+[ext_resource type="Texture2D" uid="uid://cwwc2lvihmn4b" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_01.png" id="179_l5yo8"]
+[ext_resource type="Texture2D" uid="uid://bmnv6ddwi7m1s" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_02.png" id="180_54x8m"]
+[ext_resource type="Texture2D" uid="uid://c38b8fynkh2xa" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_03.png" id="181_6ilk4"]
+[ext_resource type="Texture2D" uid="uid://desuv28kd6wew" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_04.png" id="182_kmyk5"]
+[ext_resource type="Texture2D" uid="uid://dvb24uabo2ef7" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_05.png" id="183_1rjl0"]
+[ext_resource type="Texture2D" uid="uid://cxyxtqkj5xowt" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_06.png" id="184_m06qr"]
+[ext_resource type="Texture2D" uid="uid://dnijdfik3qwh7" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_07.png" id="185_lgb13"]
+[ext_resource type="Texture2D" uid="uid://cuqim2qtwgpt5" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_08.png" id="186_5epwj"]
+[ext_resource type="Texture2D" uid="uid://d2hixmwb3n3fr" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_09.png" id="187_slm18"]
+[ext_resource type="Texture2D" uid="uid://c5fyh1wos30q2" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_10.png" id="188_e2bbx"]
+[ext_resource type="Texture2D" uid="uid://pd816nsaxskb" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_11.png" id="189_vktll"]
+[ext_resource type="Texture2D" uid="uid://bkfjd4xcrc05m" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_12.png" id="190_pvykr"]
+[ext_resource type="Texture2D" uid="uid://cj6m8xb2of28j" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_13.png" id="191_3fxdo"]
+[ext_resource type="Texture2D" uid="uid://oofijdn055ob" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_14.png" id="192_luhhi"]
+[ext_resource type="Texture2D" uid="uid://bvfnhlydg0fku" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_15.png" id="193_15frb"]
+[ext_resource type="Texture2D" uid="uid://dwg7is3gehmia" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_16.png" id="194_dg24j"]
+[ext_resource type="Texture2D" uid="uid://e34gdsjucwa1" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_17.png" id="195_5pm8u"]
+[ext_resource type="Texture2D" uid="uid://wm2538vtousw" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_18.png" id="196_x26g3"]
+[ext_resource type="Texture2D" uid="uid://b1me060rn4pli" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_19.png" id="197_phxfy"]
+[ext_resource type="Texture2D" uid="uid://brevi1vsfkicy" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_20.png" id="198_8poey"]
+[ext_resource type="Texture2D" uid="uid://cm405wgrdjki7" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_21.png" id="199_cgy2p"]
+[ext_resource type="Texture2D" uid="uid://bjtssmwae8iuo" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_22.png" id="200_8phpo"]
+[ext_resource type="Texture2D" uid="uid://b26qiggvjpu5n" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_23.png" id="201_4mh3b"]
+[ext_resource type="Texture2D" uid="uid://b0cmicoqmycgx" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_24.png" id="202_ixw2m"]
+[ext_resource type="Texture2D" uid="uid://dqd1hnkw6t40s" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_25.png" id="203_26ruk"]
+[ext_resource type="Texture2D" uid="uid://bvewa1bdhm4vb" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_26.png" id="204_8ui60"]
+[ext_resource type="Texture2D" uid="uid://c3rck4w6pu0qj" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_27.png" id="205_c0d20"]
+[ext_resource type="Texture2D" uid="uid://c2m68jrbgj8lx" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_28.png" id="206_ujuhe"]
+[ext_resource type="Texture2D" uid="uid://c4u1uxw5ws7uw" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_29.png" id="207_mff8q"]
+[ext_resource type="Texture2D" uid="uid://cs7oh7f1tto7a" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_30.png" id="208_rs3vo"]
+[ext_resource type="Texture2D" uid="uid://dkpapuoe3bvbx" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_31.png" id="209_fk0qy"]
+[ext_resource type="Texture2D" uid="uid://bf8ucacq48lq6" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_32.png" id="210_flryb"]
+[ext_resource type="Texture2D" uid="uid://cubyg2ngt4gpu" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_33.png" id="211_l4mck"]
+[ext_resource type="Texture2D" uid="uid://x7mk5kj5lb5l" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_34.png" id="212_3qv8g"]
+[ext_resource type="Texture2D" uid="uid://coeonys0j2fwc" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_35.png" id="213_pes60"]
+[ext_resource type="Texture2D" uid="uid://c2sgx73824xha" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_36.png" id="214_o3nm5"]
+[ext_resource type="Texture2D" uid="uid://b4uf62ybu02ma" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_37.png" id="215_vajna"]
+[ext_resource type="Texture2D" uid="uid://cbptu7c5bmnwu" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_38.png" id="216_7rdc0"]
+[ext_resource type="Texture2D" uid="uid://baw5t1ynxyjk1" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_39.png" id="217_4uivf"]
+[ext_resource type="Texture2D" uid="uid://dob6d6sqh0yss" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_40.png" id="218_bkbxe"]
+[ext_resource type="Texture2D" uid="uid://c1ighqy3hsx6h" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_41.png" id="219_ko6pn"]
+[ext_resource type="Texture2D" uid="uid://jvqmccmx07iw" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_42.png" id="220_7rnnq"]
+[ext_resource type="Texture2D" uid="uid://doyt8gn5cvljv" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_43.png" id="221_2eb6m"]
+[ext_resource type="Texture2D" uid="uid://dom248rc682bs" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_44.png" id="222_fps6m"]
+[ext_resource type="Texture2D" uid="uid://bubbflcusti5m" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_45.png" id="223_ad1dc"]
+[ext_resource type="Texture2D" uid="uid://bpqi8w8ojfp8h" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_46.png" id="224_7clk7"]
+[ext_resource type="Texture2D" uid="uid://dpp7shw53rbv1" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_47.png" id="225_0vkwu"]
+[ext_resource type="Texture2D" uid="uid://2x86gdlhjowh" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_48.png" id="226_m0qsh"]
+[ext_resource type="Texture2D" uid="uid://bdtequ8m4il8o" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_49.png" id="227_ua20c"]
+[ext_resource type="Texture2D" uid="uid://mcavfwu5ddwo" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_50.png" id="228_nt3ch"]
+[ext_resource type="Texture2D" uid="uid://cn8uur6pr1tea" path="res://Assets/Player/GUI/Crosshairs/Large/large_crosshair_51.png" id="229_45501"]
+
+[sub_resource type="Environment" id="Environment_rcj1l"]
+background_mode = 2
+ambient_light_source = 2
+ambient_light_color = Color(0.376471, 0.376471, 0.376471, 1)
+tonemap_mode = 2
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0
+
+[sub_resource type="Resource" id="Resource_wypao"]
+script = ExtResource("5_wdlai")
+name = "weapons/bfg/bfg_charge"
+sound = ExtResource("6_qhnn0")
+
+[sub_resource type="Resource" id="Resource_r0lgg"]
+script = ExtResource("98_5huls")
+intesityLevel = 0
+isRepeatable = true
+TrackFile = ExtResource("97_ff5rj")
+hasOutro = true
+OutroFile = ExtResource("96_e3wmk")
+
+[sub_resource type="Resource" id="Resource_n18eb"]
+script = ExtResource("98_5huls")
+intesityLevel = 0
+isRepeatable = true
+TrackFile = ExtResource("100_q7s6t")
+hasOutro = true
+OutroFile = ExtResource("99_bq65s")
+
+[sub_resource type="Resource" id="Resource_5gy5c"]
+script = ExtResource("98_5huls")
+intesityLevel = 1
+isRepeatable = true
+TrackFile = ExtResource("101_6ilvq")
+hasOutro = true
+OutroFile = ExtResource("96_e3wmk")
+
+[sub_resource type="Resource" id="Resource_1dilk"]
+script = ExtResource("98_5huls")
+intesityLevel = 2
+isRepeatable = true
+TrackFile = ExtResource("103_ykysf")
+hasOutro = true
+OutroFile = ExtResource("102_dislq")
+
+[sub_resource type="Resource" id="Resource_cx3w0"]
+script = ExtResource("98_5huls")
+intesityLevel = 3
+isRepeatable = true
+TrackFile = ExtResource("105_l6j8q")
+hasOutro = true
+OutroFile = ExtResource("104_pvalh")
+
+[sub_resource type="Resource" id="Resource_whqjk"]
+script = ExtResource("98_5huls")
+intesityLevel = 0
+isRepeatable = true
+TrackFile = ExtResource("106_q64dm")
+hasOutro = false
+
+[sub_resource type="Resource" id="Resource_io036"]
+script = ExtResource("98_5huls")
+intesityLevel = 1
+isRepeatable = true
+TrackFile = ExtResource("107_imfew")
+hasOutro = false
+
+[sub_resource type="Resource" id="Resource_f7ph5"]
+script = ExtResource("98_5huls")
+intesityLevel = 2
+isRepeatable = true
+TrackFile = ExtResource("108_f8x07")
+hasOutro = false
+
+[sub_resource type="Resource" id="Resource_dndje"]
+script = ExtResource("98_5huls")
+intesityLevel = 3
+isRepeatable = true
+TrackFile = ExtResource("109_0k0k0")
+hasOutro = false
+
+[sub_resource type="Resource" id="Resource_xagbu"]
+script = ExtResource("98_5huls")
+intesityLevel = 0
+isRepeatable = false
+TrackFile = ExtResource("110_dxybh")
+hasOutro = false
+
+[sub_resource type="Resource" id="Resource_ydpk3"]
+script = ExtResource("98_5huls")
+intesityLevel = 2
+isRepeatable = true
+TrackFile = ExtResource("111_2dxqd")
+hasOutro = false
+
+[sub_resource type="Resource" id="Resource_amkdl"]
+script = ExtResource("98_5huls")
+intesityLevel = 1
+isRepeatable = true
+TrackFile = ExtResource("112_ouf8h")
+hasOutro = false
+
+[sub_resource type="World3D" id="World3D_2k6mp"]
+
+[sub_resource type="World3D" id="World3D_vldmj"]
+
+[node name="main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_rcj1l")
+
+[node name="Quadot Arena" type="Node" parent="." node_paths=PackedStringArray("worldEnvironment", "Sun", "Root", "console", "SplitScreen", "IntermissionContainer", "IntermissionViewPort", "AdvertisementViewPort", "AdvertisementVideo")]
+script = ExtResource("2_8g0sx")
+worldEnvironment = NodePath("../WorldEnvironment")
+Sun = NodePath("../SunLight")
+Root = NodePath("..")
+console = NodePath("../Console")
+mapRotation = PackedStringArray("q3dm1", "q3dm7", "q3tourney2", "q3dm17")
+tessellations = 10
+SplitScreen = [NodePath("SplitScreenContainer/TopRow"), NodePath("SplitScreenContainer/MiddleRow"), NodePath("SplitScreenContainer/BtmRow")]
+IntermissionContainer = NodePath("IntermissionContainer")
+IntermissionViewPort = NodePath("IntermissionContainer/IntermissionViewPort")
+AdvertisementViewPort = NodePath("AdvertisementViewPort")
+AdvertisementVideo = NodePath("AdvertisementViewPort/VideoStreamPlayer")
+viewPortPrefab = ExtResource("13_tu0mj")
+scoreBoard = ExtResource("3_hqlfm")
+playerPrefab = ExtResource("7_rdgk2")
+musicType = 3
+gameType = 2
+OverrideSounds = Array[Resource]([SubResource("Resource_wypao")])
+
+[node name="MaterialManager" type="Node" parent="Quadot Arena"]
+script = ExtResource("3_amftv")
+illegal = ExtResource("5_7m0rp")
+fogMaterial = ExtResource("5_d2l4q")
+defaultMaterial = ExtResource("5_is83x")
+defaultTransparentMaterial = ExtResource("6_fojn5")
+defaultLightMapMaterial = ExtResource("6_i1nl1")
+defaultTransparentLightMapMaterial = ExtResource("7_wtcy7")
+decalsMapMaterial = ExtResource("9_xagb5")
+baseCameraMaterial = ExtResource("11_1vb85")
+underWaterMaterial = ExtResource("12_8i4o0")
+painModelMaterial = ExtResource("17_kbv0p")
+_extraTextures = Array[Resource]([ExtResource("16_clfgu"), ExtResource("17_07kil"), ExtResource("18_7vq48"), ExtResource("20_aerov"), ExtResource("21_q6y6v"), ExtResource("22_axq7l"), ExtResource("23_17lpe"), ExtResource("24_npn2v"), ExtResource("25_5aknc"), ExtResource("26_61pdm"), ExtResource("27_m0ak5"), ExtResource("28_240q0")])
+_decalsNames = PackedStringArray("gfx/damage/burn_med_mrk", "gfx/damage/bullet_mrk", "gfx/damage/plasma_mrk", "gfx/damage/hole_lg_mrk", "res/assets/textures/blood/blood1", "res/assets/textures/blood/blood2", "res/assets/textures/blood/blood3", "res/assets/textures/blood/blood4", "res/assets/textures/blood/blood5", "res/assets/textures/blood/blood6", "res/assets/textures/blood/blood7", "res/assets/textures/blood/blood8", "res/assets/textures/plasma_mark")
+_extraQShaders = PackedStringArray("res://Assets/QShaders/auxQShaders.txt")
+
+[node name="ClusterPVSManager" type="Node" parent="Quadot Arena"]
+script = ExtResource("8_vpkit")
+
+[node name="ThingsManager" type="Node" parent="Quadot Arena"]
+script = ExtResource("9_71i1l")
+_fxPrefabs = Array[PackedScene]([ExtResource("11_rh4dk"), ExtResource("13_l5hcy"), ExtResource("16_xhuyt"), ExtResource("18_nyem1"), ExtResource("20_l0jeh"), ExtResource("21_gxmhp"), ExtResource("22_i5gi6"), ExtResource("28_5ibyp"), ExtResource("38_hwtk2"), ExtResource("39_vtbss"), ExtResource("42_fuobq")])
+_projectilesPrefabs = Array[PackedScene]([ExtResource("12_6703q"), ExtResource("15_rsp03"), ExtResource("22_jphxe"), ExtResource("24_ua1m5"), ExtResource("25_44wy8"), ExtResource("27_5gm05"), ExtResource("48_5arwe"), ExtResource("50_mjtb8")])
+_decalsPrefabs = Array[PackedScene]([ExtResource("17_au5sd"), ExtResource("19_rmn3i"), ExtResource("18_occpy"), ExtResource("19_q0xlo"), ExtResource("24_5opha"), ExtResource("29_l1cqu"), ExtResource("32_kea4x"), ExtResource("43_xrsn8"), ExtResource("46_h6uxe"), ExtResource("48_o5g2n"), ExtResource("54_ylum8"), ExtResource("55_2cxke"), ExtResource("56_tyh37"), ExtResource("57_40726"), ExtResource("58_qsrid")])
+_ammoPrefabs = Array[PackedScene]([ExtResource("19_qacws"), ExtResource("21_gcmhg"), ExtResource("30_kksrp"), ExtResource("22_xc5q4"), ExtResource("20_88qir"), ExtResource("35_frbmv"), ExtResource("40_a7icm"), ExtResource("43_por0y"), ExtResource("72_0n01p"), ExtResource("71_b14fu"), ExtResource("71_qny55"), ExtResource("71_san3o"), ExtResource("78_s48ag")])
+_debrisPrefabs = Array[PackedScene]([ExtResource("18_dkfmq"), ExtResource("19_flqi0"), ExtResource("59_rmbdm")])
+_gibsPrefabs = Array[PackedScene]([ExtResource("54_rkkly"), ExtResource("55_f0i75"), ExtResource("56_6f34d"), ExtResource("57_yotn7"), ExtResource("58_16pvy"), ExtResource("59_byap5"), ExtResource("60_a3qpk"), ExtResource("61_eaowh"), ExtResource("62_chqu0"), ExtResource("63_k1tst")])
+_weaponsPrefabs = Array[PackedScene]([ExtResource("84_hoa3p"), ExtResource("24_5ts3k"), ExtResource("25_5i6m0"), ExtResource("26_6gxqa"), ExtResource("37_ho6wf"), ExtResource("42_f3nx2"), ExtResource("48_k36jd"), ExtResource("53_qje8m"), ExtResource("92_dbs5t"), ExtResource("94_1nu6c"), ExtResource("97_4yncb"), ExtResource("101_hpla6")])
+_healthsPrefabs = Array[PackedScene]([ExtResource("27_5pqil"), ExtResource("28_dpe7f"), ExtResource("30_u4mvd"), ExtResource("31_g11tp")])
+_armorPrefabs = Array[PackedScene]([ExtResource("29_slqlw"), ExtResource("30_8nwr7"), ExtResource("32_pviff"), ExtResource("104_j7abp")])
+_powerUpsPrefabs = Array[PackedScene]([ExtResource("37_60yxr"), ExtResource("42_lo0q4"), ExtResource("43_0nxgr"), ExtResource("44_nb564"), ExtResource("112_6yhw4"), ExtResource("113_fae7k"), ExtResource("114_dm6su")])
+_funcPrefabs = Array[PackedScene]([ExtResource("39_63dug"), ExtResource("38_2vxeb"), ExtResource("47_g2dqw"), ExtResource("40_xap66"), ExtResource("34_nkc1v"), ExtResource("76_lanxu"), ExtResource("111_qylle")])
+_infoPrefabs = Array[PackedScene]([ExtResource("46_6njgx"), ExtResource("33_epjyi"), ExtResource("44_er3mv"), ExtResource("74_1t76s"), ExtResource("110_ltt47"), ExtResource("111_1n03y"), ExtResource("112_ow86p"), ExtResource("125_a8uwy")])
+_miscPrefabs = Array[PackedScene]([ExtResource("48_uv6co"), ExtResource("49_gicjp"), ExtResource("37_kkxgn")])
+_targetPrefabs = Array[PackedScene]([ExtResource("32_b20ey"), ExtResource("31_tr8jk"), ExtResource("49_mb0ac"), ExtResource("79_dvn2g"), ExtResource("80_bwsan"), ExtResource("88_nvs58"), ExtResource("134_xvyx7"), ExtResource("136_00qju"), ExtResource("145_ymegc")])
+_triggerPrefabs = Array[PackedScene]([ExtResource("45_ge4jt"), ExtResource("40_yfkkd"), ExtResource("35_1ytnq"), ExtResource("36_7m5u6"), ExtResource("83_a6fcd")])
+_smallCrosshairs = Array[Texture2D]([ExtResource("128_50tgk"), ExtResource("129_1wwo8"), ExtResource("130_8oaf2"), ExtResource("131_lccci"), ExtResource("132_pjetd"), ExtResource("133_fmh6g"), ExtResource("134_m5368"), ExtResource("135_stc1s"), ExtResource("136_4btry"), ExtResource("137_5l1o2"), ExtResource("138_r562h"), ExtResource("139_pxmxr"), ExtResource("140_rsdkr"), ExtResource("141_13ffd"), ExtResource("142_3c1hk"), ExtResource("143_bie14"), ExtResource("144_v5icn"), ExtResource("145_j87fi"), ExtResource("146_3d2ic"), ExtResource("147_xsldo"), ExtResource("148_bpr3x"), ExtResource("149_27wae"), ExtResource("150_cs0us"), ExtResource("151_2vefy"), ExtResource("152_d31rm"), ExtResource("153_pdvgo"), ExtResource("154_dtesq"), ExtResource("155_dt50v"), ExtResource("156_2j174"), ExtResource("157_ltw0b"), ExtResource("158_3xawa"), ExtResource("159_cmxa0"), ExtResource("160_7s7qn"), ExtResource("161_soj1w"), ExtResource("162_erucl"), ExtResource("163_soheo"), ExtResource("164_4hsbj"), ExtResource("165_sqbdb"), ExtResource("166_6rn4g"), ExtResource("167_ac1j3"), ExtResource("168_mebaa"), ExtResource("169_18nx8"), ExtResource("170_amskc"), ExtResource("171_wr6ay"), ExtResource("172_qvsgt"), ExtResource("173_bu3tj"), ExtResource("174_83rf3"), ExtResource("175_5uxpg"), ExtResource("176_aqnr2"), ExtResource("177_sts25"), ExtResource("178_ubsvi")])
+_largeCrosshairs = Array[Texture2D]([ExtResource("179_l5yo8"), ExtResource("180_54x8m"), ExtResource("181_6ilk4"), ExtResource("182_kmyk5"), ExtResource("183_1rjl0"), ExtResource("184_m06qr"), ExtResource("185_lgb13"), ExtResource("186_5epwj"), ExtResource("187_slm18"), ExtResource("188_e2bbx"), ExtResource("189_vktll"), ExtResource("190_pvykr"), ExtResource("191_3fxdo"), ExtResource("192_luhhi"), ExtResource("193_15frb"), ExtResource("194_dg24j"), ExtResource("195_5pm8u"), ExtResource("196_x26g3"), ExtResource("197_phxfy"), ExtResource("198_8poey"), ExtResource("199_cgy2p"), ExtResource("200_8phpo"), ExtResource("201_4mh3b"), ExtResource("202_ixw2m"), ExtResource("203_26ruk"), ExtResource("204_8ui60"), ExtResource("205_c0d20"), ExtResource("206_ujuhe"), ExtResource("207_mff8q"), ExtResource("208_rs3vo"), ExtResource("209_fk0qy"), ExtResource("210_flryb"), ExtResource("211_l4mck"), ExtResource("212_3qv8g"), ExtResource("213_pes60"), ExtResource("214_o3nm5"), ExtResource("215_vajna"), ExtResource("216_7rdc0"), ExtResource("217_4uivf"), ExtResource("218_bkbxe"), ExtResource("219_ko6pn"), ExtResource("220_7rnnq"), ExtResource("221_2eb6m"), ExtResource("222_fps6m"), ExtResource("223_ad1dc"), ExtResource("224_7clk7"), ExtResource("225_0vkwu"), ExtResource("226_m0qsh"), ExtResource("227_ua20c"), ExtResource("228_nt3ch"), ExtResource("229_45501")])
+
+[node name="AdaptativeMusicManager" type="Node" parent="Quadot Arena"]
+script = ExtResource("95_viiyv")
+MainTracks = Array[Resource]([SubResource("Resource_r0lgg"), SubResource("Resource_n18eb"), SubResource("Resource_5gy5c"), SubResource("Resource_1dilk"), SubResource("Resource_cx3w0")])
+BlendTracks = Array[Resource]([SubResource("Resource_whqjk"), SubResource("Resource_io036"), SubResource("Resource_f7ph5"), SubResource("Resource_dndje"), SubResource("Resource_xagbu"), SubResource("Resource_ydpk3"), SubResource("Resource_amkdl")])
+baseVol = 7.0
+
+[node name="MultiAudioListener" type="AudioListener3D" parent="Quadot Arena"]
+current = true
+script = ExtResource("12_8hqnu")
+
+[node name="SplitScreenContainer" type="VBoxContainer" parent="Quadot Arena"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="TopRow" type="HBoxContainer" parent="Quadot Arena/SplitScreenContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MiddleRow" type="HBoxContainer" parent="Quadot Arena/SplitScreenContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="BtmRow" type="HBoxContainer" parent="Quadot Arena/SplitScreenContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="IntermissionContainer" type="SubViewportContainer" parent="Quadot Arena"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="IntermissionViewPort" type="SubViewport" parent="Quadot Arena/IntermissionContainer"]
+world_3d = SubResource("World3D_2k6mp")
+handle_input_locally = false
+positional_shadow_atlas_size = 0
+positional_shadow_atlas_16_bits = false
+positional_shadow_atlas_quad_0 = 0
+positional_shadow_atlas_quad_1 = 0
+positional_shadow_atlas_quad_2 = 0
+positional_shadow_atlas_quad_3 = 0
+size = Vector2i(1280, 720)
+render_target_clear_mode = 1
+render_target_update_mode = 0
+
+[node name="AdvertisementViewPort" type="SubViewport" parent="Quadot Arena"]
+world_3d = SubResource("World3D_vldmj")
+handle_input_locally = false
+positional_shadow_atlas_size = 0
+positional_shadow_atlas_16_bits = false
+positional_shadow_atlas_quad_0 = 0
+positional_shadow_atlas_quad_1 = 0
+positional_shadow_atlas_quad_2 = 0
+positional_shadow_atlas_quad_3 = 0
+size = Vector2i(1280, 720)
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="Quadot Arena/AdvertisementViewPort"]
+offset_right = 40.0
+offset_bottom = 40.0
+stream = ExtResource("143_abt02")
+autoplay = true
+loop = true
+buffering_msec = 1000
+
+[node name="Console" parent="." instance=ExtResource("145_ykqwb")]
+offset_top = -360.0
+offset_bottom = -720.0
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+layers = 255
+light_color = Color(0, 0, 0, 1)
+shadow_enabled = true
+directional_shadow_mode = 1

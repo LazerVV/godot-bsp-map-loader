@@ -1,0 +1,7 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://d2qwccitnqm8c"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/Data Resources/SoundData.cs" id="1_10dem"]
+
+[resource]
+script = ExtResource("1_10dem")
+name = ""

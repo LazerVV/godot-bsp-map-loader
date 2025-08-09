@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://0ys87si5lkyg"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/ModelController.cs" id="1_0oine"]
+
+[node name="BulletHit" type="Node3D"]
+script = ExtResource("1_0oine")
+modelName = "weaphits/bullet"
+shaderName = "bulletExplosion"
+isTransparent = true
+modelAnimationFPS = 12.0
+destroyType = 2

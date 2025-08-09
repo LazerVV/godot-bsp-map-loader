@@ -1,0 +1,54 @@
+[gd_scene load_steps=6 format=3 uid="uid://bgc0fdktol7v8"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/ThingControllers/ThingController.cs" id="1_us0o8"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/ModelController.cs" id="2_rrjx0"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/NodeAnimation.cs" id="4_b6d7h"]
+[ext_resource type="Script" path="res://Assets/Scripts/ThingControllers/ItemPickup.cs" id="5_451k2"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_whspm"]
+
+[node name="item_health_small" type="Node3D" node_paths=PackedStringArray("itemPickup")]
+script = ExtResource("1_us0o8")
+respawnTime = 35.0
+thingType = 2
+itemPickup = NodePath("Item")
+
+[node name="Sphere" type="Node3D" parent="."]
+script = ExtResource("2_rrjx0")
+modelName = "powerups/health/small_sphere"
+isTransparent = true
+castShadows = true
+
+[node name="NodeAnimation" type="Node3D" parent="Sphere"]
+script = ExtResource("4_b6d7h")
+rotAxis = 1
+posEnable = true
+posAmplitude = 0.1
+posFPS = 5.0
+
+[node name="Cross" type="Node3D" parent="."]
+script = ExtResource("2_rrjx0")
+modelName = "powerups/health/small_cross"
+
+[node name="NodeAnimation" type="Node3D" parent="Cross"]
+script = ExtResource("4_b6d7h")
+rotEnable = true
+rotFPS = 100.0
+posEnable = true
+posAmplitude = 0.1
+posFPS = 5.0
+
+[node name="Item" type="Area3D" parent="." node_paths=PackedStringArray("thingController")]
+collision_layer = 32
+collision_mask = 32704
+monitorable = false
+script = ExtResource("5_451k2")
+thingController = NodePath("..")
+amount = 5
+bonus = true
+PickupSound = "items/s_health"
+PickupIcon = "icons/iconh_green"
+PickupText = "5 Health"
+
+[node name="Shape" type="CollisionShape3D" parent="Item"]
+shape = SubResource("SphereShape3D_whspm")

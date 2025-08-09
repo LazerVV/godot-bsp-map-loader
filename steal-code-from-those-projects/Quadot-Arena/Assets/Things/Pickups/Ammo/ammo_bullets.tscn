@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3 uid="uid://wfrbjpq2b7t7"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/ThingControllers/ThingController.cs" id="1_eht21"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/NodeAnimation.cs" id="2_80sla"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/ModelController.cs" id="2_y0rb5"]
+[ext_resource type="Script" path="res://Assets/Scripts/ThingControllers/ItemPickup.cs" id="3_wfhkk"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_whspm"]
+radius = 0.7
+
+[node name="ammo_bullets" type="Node3D" node_paths=PackedStringArray("itemPickup")]
+script = ExtResource("1_eht21")
+respawnTime = 30.0
+thingType = 2
+itemPickup = NodePath("Item")
+
+[node name="NodeAnimation" type="Node3D" parent="."]
+script = ExtResource("2_80sla")
+rotEnable = true
+rotFPS = 40.0
+posEnable = true
+posAmplitude = 0.1
+posFPS = 5.0
+
+[node name="Bullets" type="Node3D" parent="."]
+script = ExtResource("2_y0rb5")
+modelName = "powerups/ammo/machinegunam"
+castShadows = true
+
+[node name="Item" type="Area3D" parent="." node_paths=PackedStringArray("thingController")]
+collision_layer = 32
+collision_mask = 32704
+monitorable = false
+script = ExtResource("3_wfhkk")
+thingController = NodePath("..")
+itemType = 3
+amount = 50
+PickupSound = "misc/am_pkup"
+PickupIcon = "icons/icona_machinegun"
+PickupText = "Bullets"
+
+[node name="Shape" type="CollisionShape3D" parent="Item"]
+shape = SubResource("SphereShape3D_whspm")

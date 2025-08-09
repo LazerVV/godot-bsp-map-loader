@@ -1,0 +1,54 @@
+[gd_scene load_steps=7 format=3 uid="uid://c5tu2rku1v7om"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Projectiles/PlasmaBall.cs" id="1_77jtm"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/InterpolatedTransform.cs" id="3_85jl5"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/SpriteController.cs" id="4_8eear"]
+[ext_resource type="Script" path="res://Assets/ThirdParty/MultiAudioListener/MultiAudioStream.cs" id="4_nkpjw"]
+[ext_resource type="Script" path="res://Assets/Scripts/Generic/Data Resources/SpriteData.cs" id="5_v3q4n"]
+
+[sub_resource type="Resource" id="Resource_sc861"]
+resource_local_to_scene = true
+script = ExtResource("5_v3q4n")
+destroyType = 0
+destroyTimer = 0.0
+Modulate = Color(0, 0, 0, 1)
+
+[node name="PlasmaProjectile" type="Node3D" node_paths=PackedStringArray("audioStream")]
+script = ExtResource("1_77jtm")
+_onFlySound = "weapons/plasma/lasfly"
+_lifeTime = 2.0
+speed = 60.0
+rotateSpeed = 720
+damageMin = 14
+damageMax = 20
+blastDamage = 14
+explosionRadius = 0.2
+OnDeathSpawn = "PlasmaExplosion"
+decalMark = "PlasmaMark"
+secondaryMark = "BulletMark"
+audioStream = NodePath("MultiAudioStream")
+_onDeathSound = "weapons/plasma/plasmx1a"
+
+[node name="SourcePlasma" type="Node3D" parent="."]
+
+[node name="MultiAudioStream" type="Node3D" parent="."]
+script = ExtResource("4_nkpjw")
+
+[node name="InterpolatedTransform" type="Node3D" parent="." node_paths=PackedStringArray("Source", "interpolationReset")]
+script = ExtResource("3_85jl5")
+Source = NodePath("../SourcePlasma")
+interpolationReset = NodePath("..")
+
+[node name="Plasma" type="Node3D" parent="InterpolatedTransform" node_paths=PackedStringArray("referenceNode")]
+script = ExtResource("4_8eear")
+spriteName = "sprites/plasma1"
+billboard = 1
+spriteData = SubResource("Resource_sc861")
+referenceNode = NodePath("..")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="InterpolatedTransform"]
+layers = 255
+light_color = Color(0, 0.0980392, 1, 1)
+light_energy = 5.0
+light_bake_mode = 0
+omni_shadow_mode = 0
