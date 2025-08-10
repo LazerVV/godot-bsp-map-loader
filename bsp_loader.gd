@@ -311,12 +311,52 @@ func load_bsp(path: String) -> Node3D:
 			var ent_mesh = ArrayMesh.new()
 			var ent_by_mat: Dictionary = {}
 			var col_vertices: PackedVector3Array = []
+			# Special-case non-render collision buffers
+			var clip_only_vertices: PackedVector3Array = []
+			var weapclip_vertices: PackedVector3Array = []
 			var patch_number: int = 0
 			for face_idx in range(model.first_face, model.first_face + model.num_faces):
 				var face = faces[face_idx]
 				if face.surface_type not in [MST_PLANAR, MST_TRIANGLE_SOUP, MST_PATCH]:
 					continue
 				var sh_name = shaders[face.shader_num]["name"] if face.shader_num >= 0 and face.shader_num < shaders.size() else ""
+				# Special collision handling for clip/weapclip/full_clip
+				if sh_name in ["common/clip", "common/weapclip", "common/full_clip"]:
+					# Extract triangles for collision from this non-render surface
+					if face.surface_type == MST_PATCH:
+						# For simplicity, ignore patch clips; rare in practice
+						pass
+					else:
+						for i_idx in range(0, face.num_mv, 3):
+							var a_idx = meshverts[face.first_mv + i_idx]
+							var b_idx = meshverts[face.first_mv + i_idx + 1]
+							var c_idx = meshverts[face.first_mv + i_idx + 2]
+							if a_idx < 0 or b_idx < 0 or c_idx < 0:
+								continue
+							if a_idx >= face.num_verts or b_idx >= face.num_verts or c_idx >= face.num_verts:
+								continue
+							var va = verts[face.first_vert + a_idx].pos
+							var vb = verts[face.first_vert + b_idx].pos
+							var vc = verts[face.first_vert + c_idx].pos
+							if sh_name == "common/clip":
+								clip_only_vertices.append(va)
+								clip_only_vertices.append(vb)
+								clip_only_vertices.append(vc)
+							elif sh_name == "common/weapclip":
+								weapclip_vertices.append(va)
+								weapclip_vertices.append(vb)
+								weapclip_vertices.append(vc)
+							else:
+								# full_clip counts as both
+								clip_only_vertices.append(va)
+								clip_only_vertices.append(vb)
+								clip_only_vertices.append(vc)
+								weapclip_vertices.append(va)
+								weapclip_vertices.append(vb)
+								weapclip_vertices.append(vc)
+					# Skip rendering these helper surfaces
+					continue
+				# Skip other non-render helpers
 				if sh_name in NON_RENDER_SHADERS and sh_name != "common/invisible":
 					continue
 				# Skip sky surfaces; drawn via skybox
@@ -500,7 +540,11 @@ func load_bsp(path: String) -> Node3D:
 					if debug_logging:
 						print("Processed patch face %d: w=%d, h=%d, vertices=%d, triangles=%d" % [face_idx, w, h, patch_vertices.size(), triangle_count])
 					# Add patch triangles to entity-level concave collision
-					if include_patch_collision and sh_name not in non_solid_shaders:
+					var is_liquid_patch := false
+					if texture_loader.shader_data.has(sh_name) and texture_loader.shader_data[sh_name].has("surfaceparms"):
+						var sp = texture_loader.shader_data[sh_name]["surfaceparms"]
+						is_liquid_patch = ("water" in sp or "slime" in sp or "lava" in sp)
+					if include_patch_collision and sh_name not in non_solid_shaders and not is_liquid_patch:
 						var added_tris := 0
 						for t in range(0, patch_indices.size(), 3):
 							if t + 2 >= patch_indices.size():
@@ -558,7 +602,11 @@ func load_bsp(path: String) -> Node3D:
 							mat_data.uv.append(scaled_uv)
 							mat_data.luv.append(vert.luv / Vector2(128, 128))
 							mat_data.color.append(vert.color)
-							if sh_name not in non_solid_shaders:
+							var is_liquid := false
+							if texture_loader.shader_data.has(sh_name) and texture_loader.shader_data[sh_name].has("surfaceparms"):
+								var sp = texture_loader.shader_data[sh_name]["surfaceparms"]
+								is_liquid = ("water" in sp or "slime" in sp or "lava" in sp)
+							if sh_name not in non_solid_shaders and not is_liquid:
 								col_vertices.append(vert.pos)
 			var surface_idx = 0
 			for sh_name in ent_by_mat.keys():
@@ -607,16 +655,23 @@ func load_bsp(path: String) -> Node3D:
 				ent_mi.owner = root
 				if debug_logging:
 					print("Added geometry for entity: %s with %d surfaces" % [node_name, ent_mesh.get_surface_count()])
-				if not col_vertices.is_empty() and (classname == "worldspawn" or is_collidable):
+				# Build player and weapon collision from collected triangles
+				var player_faces: PackedVector3Array = PackedVector3Array()
+				player_faces.append_array(col_vertices)
+				player_faces.append_array(clip_only_vertices)
+				var weapon_faces: PackedVector3Array = PackedVector3Array()
+				weapon_faces.append_array(col_vertices)
+				weapon_faces.append_array(weapclip_vertices)
+				if not player_faces.is_empty() and (classname == "worldspawn" or is_collidable):
 					if debug_logging:
-						print("Creating collision for entity: ", node_name)
+						print("Creating player collision for entity: ", node_name)
 					var col_shape = CollisionShape3D.new()
 					var concave_shape = ConcavePolygonShape3D.new()
 					var faces_array = []
-					for i in range(0, col_vertices.size() - 2, 3):
-						var v0 = col_vertices[i]
-						var v1 = col_vertices[i + 1]
-						var v2 = col_vertices[i + 2]
+					for i in range(0, player_faces.size() - 2, 3):
+						var v0 = player_faces[i]
+						var v1 = player_faces[i + 1]
+						var v2 = player_faces[i + 2]
 						if v0.distance_to(v1) > 0.001 and v1.distance_to(v2) > 0.001 and v2.distance_to(v0) > 0.001:
 							faces_array.append(v0)
 							faces_array.append(v1)
@@ -628,11 +683,35 @@ func load_bsp(path: String) -> Node3D:
 						node.add_child(col_shape)
 						col_shape.owner = root
 						if debug_logging:
-							print("Collision vertices: %d for entity: %s" % [faces_array.size(), node_name])
+							print("Player collision vertices: %d for entity: %s" % [faces_array.size(), node_name])
 					else:
 						if debug_logging:
-							print("Invalid collision vertices (%d, mod 3 = %d) for entity: %s" % [faces_array.size(), faces_array.size() % 3, node_name])
-				else:
+							print("Invalid player collision vertices (%d, mod 3 = %d) for entity: %s" % [faces_array.size(), faces_array.size() % 3, node_name])
+				# Weapon collision as separate StaticBody3D (layer 8)
+				if not weapon_faces.is_empty() and (classname == "worldspawn" or is_collidable):
+					var weapon_body := StaticBody3D.new()
+					weapon_body.name = "WeaponBlocker"
+					weapon_body.collision_layer = 1 << 7
+					weapon_body.collision_mask = 0
+					node.add_child(weapon_body)
+					weapon_body.owner = root
+					var col_shape_w = CollisionShape3D.new()
+					var concave_w = ConcavePolygonShape3D.new()
+					var faces_w = []
+					for i in range(0, weapon_faces.size() - 2, 3):
+						var v0w = weapon_faces[i]
+						var v1w = weapon_faces[i + 1]
+						var v2w = weapon_faces[i + 2]
+						if v0w.distance_to(v1w) > 0.001 and v1w.distance_to(v2w) > 0.001 and v2w.distance_to(v0w) > 0.001:
+							faces_w.append(v0w)
+							faces_w.append(v1w)
+							faces_w.append(v2w)
+					if faces_w.size() > 0 and faces_w.size() % 3 == 0:
+						concave_w.set_faces(faces_w)
+						col_shape_w.shape = concave_w
+						col_shape_w.name = "Collision_Weapon"
+						weapon_body.add_child(col_shape_w)
+						col_shape_w.owner = root
 					if debug_logging:
 						print("No collision vertices or non-collidable entity: %s" % node_name)
 			else:

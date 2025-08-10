@@ -90,3 +90,15 @@ rm assets/boil_delme_*
   - Use `extract_brush_vertices(...)` to triangulate each trigger/goal submodel into world-space triangles (same path as func_* interaction shapes).
   - Removed center-offset and angle-rotation of trigger vertices; vertices are already oriented in BSP space.
   - Fallback still triangulates AABB, but now also stays in world space (no misleading rotation), so it at least covers the right volume.
+
+- Feature: Clip vs weaponclip collisions
+  - Added `common/weapclip` to non-render helpers; no longer draws.
+  - Importer now builds two collision sets per entity:
+    - Player collision: default solids + `common/clip` + `common/full_clip`.
+    - Weapon collision (layer 8, child `StaticBody3D`): default solids + `common/weapclip` + `common/full_clip`.
+  - This makes `clip` block players while weapon fire passes; `weapclip` acts like a solid wall for weapon traces.
+
+- Docs: Special shader semantics documented inline in `bsp_common.gd` and summarized in README.
+
+- Collision: Liquids are non-solid
+  - Surfaces with shader `surfaceparm water|slime|lava` are excluded from collision generation even if not marked `nonsolid` in shader files.

@@ -24,6 +24,18 @@ The second way is the "proper one" that I was working on with Grok-3 last time. 
 
 What also never worked right was when triggers were assymetrical and rotated. It worked fine with simple box-shaped brushes that were not rotated at some point. This was a thing were Grok-3 really bugged out on, and it broke it more and more, so I stopped trying to do it right for another AI to solve it with ease in future attempts. This might have left trigger boxes in an unusually bad state.
 
+## Special Shaders and Collision (Xonotic semantics)
+
+- common/clip: player-only clip. Not rendered. Blocks players; weapon fire should pass. Importer adds these triangles only to the player collision body.
+- common/weapclip: weapon clip. Not rendered. Importer treats these as solid walls for collision; included in the weapon-only collision body (and effectively solid for players too when combined with default world geometry).
+- common/full_clip: legacy, treated as fully solid. Included for both player and weapon collision.
+- common/invisible: solid, invisible surface. Kept solid in collision and uses a transparent material to avoid visible artifacts.
+- Liquids (surfaceparm water/slime/lava): rendered but never used for solid collision. The importer marks them as non-solid for collision; damage values are exposed via metadata and can be consumed by gameplay.
+
+Collision layers:
+- World/player body uses layer 1 (unchanged).
+- Weapon blocker body uses layer 8 (bit 7). Projectiles should set their collision mask to include layer 8 and exclude layer 1 so they collide with world solids but ignore `common/clip`.
+
 #### png convert
 This is only a simple example how to convert all dds textures supplied with xonotic to png.
 
