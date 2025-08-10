@@ -688,8 +688,8 @@ func load_bsp(path: String) -> Node3D:
 						classify = "solid"
 					else:
 						classify = "non_solid"
-					# Generate triangles for this specific brush and add to buckets
-					var tri = extract_single_brush_vertices(brush_idx, model, brushes, brushsides, planes)
+					# Generate triangles for this specific brush via per-plane clipping
+					var tri = triangulate_brush_by_planes(brush_idx, model, brushes, brushsides, planes)
 					if tri.size() > 0 and tri.size() % 3 == 0:
 						if classify == "player_clip":
 							for v in tri:
@@ -1046,92 +1046,121 @@ func is_brush_collidable(model: Dictionary, brushes: Array[Dictionary], brushsid
 	return solid_count > total_sides / 2
 
 func extract_brush_vertices(model: Dictionary, brushes: Array[Dictionary], brushsides: Array[Dictionary], planes: Array[Dictionary], shaders: Array[Dictionary]) -> PackedVector3Array:
+	# Build triangles for all brushes in the submodel using per-plane clipping,
+	# which yields proper faces without criss-crossing.
 	var vertices: PackedVector3Array = []
 	for brush_idx in range(model.first_brush, model.first_brush + model.num_brushes):
 		if brush_idx < 0 or brush_idx >= brushes.size():
-			if debug_logging:
-				print("Invalid brush index %d for model, range %d-%d" % [brush_idx, model.first_brush, model.first_brush + model.num_brushes])
 			continue
-		var brush = brushes[brush_idx]
-		var brush_planes: Array[Dictionary] = []
-		var is_valid_brush = true
-		for side_idx in range(brush.first_side, brush.first_side + brush.num_sides):
-			if side_idx < 0 or side_idx >= brushsides.size():
-				if debug_logging:
-					print("Invalid brushside index %d for brush %d" % [side_idx, brush_idx])
-				is_valid_brush = false
-				break
-			var side = brushsides[side_idx]
-			if side.plane_num < 0 or side.plane_num >= planes.size():
-				if debug_logging:
-					print("Invalid plane_num %d for brush %d, side %d" % [side.plane_num, brush_idx, side_idx])
-				is_valid_brush = false
-				break
-			brush_planes.append(planes[side.plane_num])
-		if not is_valid_brush:
-			if debug_logging:
-				print("Skipping invalid brush %d: valid=%s, planes=%d" % [brush_idx, is_valid_brush, brush_planes.size()])
-			continue
-		if brush_planes.size() < 4:
-			if debug_logging:
-				print("Skipping brush %d with insufficient planes: %d" % [brush_idx, brush_planes.size()])
-			continue
-		var brush_vertices = intersect_planes(brush_planes)
-		if brush_vertices.size() == 0:
-			if debug_logging:
-				print("No vertices for brush %d, planes: %s" % [brush_idx, brush_planes])
-			continue
-		var hull_vertices = convex_hull(brush_vertices, model.mins, model.maxs)
-		for i in range(0, hull_vertices.size() - 2, 3):
-			var v0 = hull_vertices[i]
-			var v1 = hull_vertices[i + 1]
-			var v2 = hull_vertices[i + 2]
-			if v0.distance_to(v1) > 0.001 and v1.distance_to(v2) > 0.001 and v2.distance_to(v0) > 0.001:
-				vertices.append(v0)
-				vertices.append(v1)
-				vertices.append(v2)
-	if vertices.size() == 0:
-		if debug_logging:
-			print("No valid vertices for model, brushes %d-%d" % [model.first_brush, model.first_brush + model.num_brushes])
-	elif vertices.size() % 3 != 0:
-		if debug_logging:
-			print("Invalid vertex count (%d) for brush, adjusting to multiple of 3" % vertices.size())
-		var new_size = (vertices.size() / 3) * 3
-		var new_vertices = PackedVector3Array()
-		for i in range(new_size):
-			new_vertices.append(vertices[i])
-		vertices = new_vertices
+		var tri = triangulate_brush_by_planes(brush_idx, model, brushes, brushsides, planes)
+		if tri.size() > 0:
+			for v in tri:
+				vertices.append(v)
 	return vertices
 
 # Triangulate a single brush into world-space triangles using its planes
 func extract_single_brush_vertices(brush_idx: int, model: Dictionary, brushes: Array[Dictionary], brushsides: Array[Dictionary], planes: Array[Dictionary]) -> PackedVector3Array:
-	var vertices: PackedVector3Array = []
+	# Backwards-compatible wrapper; delegates to triangulate_brush_by_planes.
+	return triangulate_brush_by_planes(brush_idx, model, brushes, brushsides, planes)
+
+# Properly triangulate a convex Quake3 brush by building each face
+# via plane clipping within the model AABB and fanning each polygon.
+func triangulate_brush_by_planes(brush_idx: int, model: Dictionary, brushes: Array[Dictionary], brushsides: Array[Dictionary], planes: Array[Dictionary]) -> PackedVector3Array:
+	var tris := PackedVector3Array()
 	if brush_idx < 0 or brush_idx >= brushes.size():
-		return vertices
+		return tris
 	var brush = brushes[brush_idx]
-	var brush_planes: Array[Dictionary] = []
+	# Gather plane indices for this brush
+	var side_plane_idxs: Array[int] = []
 	for side_idx in range(brush.first_side, brush.first_side + brush.num_sides):
 		if side_idx < 0 or side_idx >= brushsides.size():
 			continue
-		var side = brushsides[side_idx]
-		if side.plane_num < 0 or side.plane_num >= planes.size():
+		var plane_idx = brushsides[side_idx].plane_num
+		if plane_idx >= 0 and plane_idx < planes.size():
+			side_plane_idxs.append(plane_idx)
+	if side_plane_idxs.size() < 4:
+		return tris
+	# Precompute a generous face extent from model AABB
+	var diag = (model.maxs - model.mins).length()
+	var extent = max(1.0, diag * 2.0)
+	var EPS: float = 0.0005
+	# For each plane, construct its clipped face polygon
+	for plane_idx in side_plane_idxs:
+		var pl = planes[plane_idx]
+		var n: Vector3 = pl.normal.normalized()
+		var d: float = pl.dist
+		# Plane basis
+		var u: Vector3 = n.cross(Vector3(0, 1, 0))
+		if u.length_squared() < 1e-6:
+			u = n.cross(Vector3(1, 0, 0))
+		u = u.normalized()
+		var v: Vector3 = n.cross(u).normalized()
+		# Point on plane
+		var p0: Vector3 = n * d
+		# Start with a large quad on the plane
+		var poly: Array[Vector3] = []
+		poly.append(p0 + ( u * extent) + ( v * extent))
+		poly.append(p0 + (-u * extent) + ( v * extent))
+		poly.append(p0 + (-u * extent) + (-v * extent))
+		poly.append(p0 + ( u * extent) + (-v * extent))
+		# Clip against all other planes of the brush
+		for other_idx in side_plane_idxs:
+			if other_idx == plane_idx:
+				continue
+			var opl = planes[other_idx]
+			poly = _clip_polygon_against_plane(poly, opl.normal, opl.dist, EPS)
+			if poly.size() < 3:
+				break
+		if poly.size() < 3:
 			continue
-		brush_planes.append(planes[side.plane_num])
-	if brush_planes.size() < 4:
-		return vertices
-	var brush_vertices = intersect_planes(brush_planes)
-	if brush_vertices.size() == 0:
-		return vertices
-	var hull_vertices = convex_hull(brush_vertices, model.mins, model.maxs)
-	for i in range(0, hull_vertices.size() - 2, 3):
-		var v0 = hull_vertices[i]
-		var v1 = hull_vertices[i + 1]
-		var v2 = hull_vertices[i + 2]
-		if v0.distance_to(v1) > 0.001 and v1.distance_to(v2) > 0.001 and v2.distance_to(v0) > 0.001:
-			vertices.append(v0)
-			vertices.append(v1)
-			vertices.append(v2)
-	return vertices
+		# Ensure consistent winding: polygon normal should align with plane normal
+		var poly_norm = _polygon_normal(poly).normalized()
+		if poly_norm.dot(n) < 0.0:
+			poly.reverse()
+		# Triangulate as a fan
+		for i in range(1, poly.size() - 1):
+			var a = poly[0]
+			var b = poly[i]
+			var c = poly[i + 1]
+			# Filter degenerate triangles
+			if a.distance_to(b) <= EPS or b.distance_to(c) <= EPS or c.distance_to(a) <= EPS:
+				continue
+			tris.append(a)
+			tris.append(b)
+			tris.append(c)
+	return tris
+
+func _clip_polygon_against_plane(poly: Array[Vector3], n: Vector3, d: float, eps: float) -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	if poly.size() == 0:
+		return out
+	var prev = poly[poly.size() - 1]
+	var prev_dist = prev.dot(n) - d
+	for cur in poly:
+		var cur_dist = cur.dot(n) - d
+		var prev_inside = prev_dist <= eps
+		var cur_inside = cur_dist <= eps
+		if cur_inside:
+			if not prev_inside:
+				var t = prev_dist / (prev_dist - cur_dist)
+				var inter = prev.lerp(cur, t)
+				out.append(inter)
+			out.append(cur)
+		elif prev_inside:
+			var t2 = prev_dist / (prev_dist - cur_dist)
+			var inter2 = prev.lerp(cur, t2)
+			out.append(inter2)
+		prev = cur
+		prev_dist = cur_dist
+	return out
+
+func _polygon_normal(poly: Array[Vector3]) -> Vector3:
+	var n := Vector3.ZERO
+	for i in range(poly.size()):
+		var a = poly[i]
+		var b = poly[(i + 1) % poly.size()]
+		n += a.cross(b)
+	return n
 
 func intersect_planes(brush_planes: Array[Dictionary]) -> PackedVector3Array:
 	var vertices: PackedVector3Array = []

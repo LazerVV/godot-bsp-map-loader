@@ -100,3 +100,23 @@ rm assets/test_delme_*
 
 - Collision: Liquids are non-solid
   - Surfaces with shader `surfaceparm water|slime|lava` are excluded from collision generation even if not marked `nonsolid` in shader files.
+
+# Changelog (Aug 10, 2025 — later)
+
+- Collision: Brush classification and clip/weapclip fixed
+  - Implemented majority-of-sides brush classification (clip vs weapclip vs full_clip vs caulk/nodraw vs liquid) directly in `bsp_common.gd` and used in `bsp_loader.gd`.
+  - `common/clip` now builds a separate `StaticBody3D` child named `PlayerClip` with a single `ConcavePolygonShape3D` on layer 8 so weapon traces can ignore it while players collide.
+  - `common/weapclip`/`common/weaponclip` and `common/full_clip`/`common/invisible` are merged into the main world collision (treated like solid walls).
+  - Liquids (`surfaceparm water|slime|lava`) build non-solid `Area3D` volumes with a `ConcavePolygonShape3D` and metadata `liquid_type` and `damage_per_second` (defaults from `BSPCommon.LIQUID_DEFAULT_DPS`).
+
+- Collision: Proper brush triangulation (no criss-cross)
+  - Replaced the old convex-hull fan with proper per-plane clipping triangulation.
+  - New `triangulate_brush_by_planes(...)` constructs each brush face by clipping a large quad on the face plane against the other planes, then triangulates the resulting convex polygon with consistent outward winding.
+  - Used for world, func_* interaction, and clip/liquid shape generation, eliminating crossed triangles and inverted faces that caused falling-through and visual confusion in the editor.
+
+- Docs: Special shader semantics clarified
+  - In `bsp_common.gd`, documented Xonotic/Quake3 meanings for `common/clip`, `common/weapclip`/`weaponclip`, `common/full_clip`, `common/invisible`, `common/caulk`/`nodraw`, and liquids. Ignored bot-only helpers.
+
+Notes
+- Do not revert to per-face convex hulls; they were the source of triangle “X” artifacts. If a brush has no renderable faces (e.g., pure `clip`), triangulate via planes.
+- The separate `PlayerClip` body is the only special collision layer; there is no dedicated “Weaponblocker” body anymore.
