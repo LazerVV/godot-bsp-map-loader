@@ -55,12 +55,12 @@ VERY IMPORTANT: The project uses tabs as indentation and you can't mix this with
 
 # Testing
 
-Duplicating assets/boil.bsp will trigger a reimport of this file to test the importer.
+Duplicating assets/test.bsp will trigger a reimport of this file to test the importer. Don't use boil.bsp it is too slow.
 
 ```
-cp assets/boil.bsp assets/boil_delme_`date +%s`.bsp
+cp assets/test.bsp assets/test_delme_`date +%s`.bsp
 godot --headless --editor --quit --path . --verbose
-rm assets/boil_delme_*
+rm assets/test_delme_*
 ```
 
 # Changelog (Aug 9–10, 2025)
@@ -74,7 +74,7 @@ rm assets/boil_delme_*
 - Fix: Restored original `is_brush_collidable(...)` logic in `bsp_loader.gd`.
   - Counts brush sides by shader: increments for `SOLID_SHADERS`, decrements for `NON_RENDER_SHADERS` except `common/invisible`, then treats brush as collidable when `solid_count > total_sides/2`.
   - This re-enables correct func_* entity collidability and avoids over-colliding non-solid surfaces.
-- Verified headless reimport of `boil` works and adds the skybox: `godot --headless --editor --quit --path .`.
+- Verified headless reimport of `test` works and adds the skybox: `godot --headless --editor --quit --path .`.
 
 - Fix: Skybox face orientation on Z axis
   - Adjusted UV mapping in `bsp_loader.gd` for `ft` and `bk` faces (rotate 90° CW) so Quake3 `env/<name>_ft/_bk` align with neighboring faces. Top/bottom were already correct.
@@ -91,12 +91,10 @@ rm assets/boil_delme_*
   - Removed center-offset and angle-rotation of trigger vertices; vertices are already oriented in BSP space.
   - Fallback still triangulates AABB, but now also stays in world space (no misleading rotation), so it at least covers the right volume.
 
-- Feature: Clip vs weaponclip collisions
-  - Added `common/weapclip` to non-render helpers; no longer draws.
-  - Importer now builds two collision sets per entity:
-    - Player collision: default solids + `common/clip` + `common/full_clip`.
-    - Weapon collision (layer 8, child `StaticBody3D`): default solids + `common/weapclip` + `common/full_clip`.
-  - This makes `clip` block players while weapon fire passes; `weapclip` acts like a solid wall for weapon traces.
+- Feature: Clip vs weaponclip layers (reworked)
+  - `common/clip` now lives on its own PlayerClip body (layer 8, child `StaticBody3D`). Players should include this layer; weapons should exclude it so shots pass.
+  - `common/weapclip` and `common/full_clip` are merged into main world collision so they behave as regular solid walls for everyone.
+  - Liquids (`surfaceparm water|slime|lava`) remain non-solid.
 
 - Docs: Special shader semantics documented inline in `bsp_common.gd` and summarized in README.
 

@@ -10,19 +10,20 @@ func _ready():
 		# Handle push trigger (e.g., push player toward target)
 		var target = properties.get("target", "")
 		if target:
-			# Find target_position node
-			var target_node = get_tree().get_root().find_node(target, true, false)
-			if target_node:
-				# Example: Apply impulse when player enters
-				pass
+			# TODO: write proper target finding based on metadata search for all Character3D derivatives
+			#if target_node:
+			#	# Example: Apply impulse when player enters
+			#	pass
+			pass
 	elif classname == "trigger_teleport":
 		# Handle teleport trigger
 		var target = properties.get("target", "")
 		if target:
-			var target_node = get_tree().get_root().find_node(target, true, false)
-			if target_node:
-				# Example: Teleport player to target
-				pass
+			# TODO: write proper target finding based on metadata search for all Character3D derivatives
+			#if target_node:
+			#	# Example: Teleport player to target
+			#	pass
+			pass
 	elif classname == "trigger_hurt":
 		# Handle hurt trigger
 		var damage = properties.get("damage", "100").to_int()

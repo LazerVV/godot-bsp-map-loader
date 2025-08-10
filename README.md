@@ -26,15 +26,15 @@ What also never worked right was when triggers were assymetrical and rotated. It
 
 ## Special Shaders and Collision (Xonotic semantics)
 
-- common/clip: player-only clip. Not rendered. Blocks players; weapon fire should pass. Importer adds these triangles only to the player collision body.
-- common/weapclip: weapon clip. Not rendered. Importer treats these as solid walls for collision; included in the weapon-only collision body (and effectively solid for players too when combined with default world geometry).
-- common/full_clip: legacy, treated as fully solid. Included for both player and weapon collision.
-- common/invisible: solid, invisible surface. Kept solid in collision and uses a transparent material to avoid visible artifacts.
-- Liquids (surfaceparm water/slime/lava): rendered but never used for solid collision. The importer marks them as non-solid for collision; damage values are exposed via metadata and can be consumed by gameplay.
+- common/clip: player-only clip. Not rendered. Blocks players; weapon fire should pass. Importer places these triangles into a dedicated PlayerClip body.
+- common/weapclip (weaponclip): weapon clip. Not rendered. Treated as solid wall; merged into main world collision so both players and traces hit it.
+- common/full_clip: legacy, fully solid invisible wall. Merged into main world collision.
+- common/invisible: invisible solid surface. Kept solid in collision; uses a transparent material to avoid artifacts.
+- Liquids (surfaceparm water/slime/lava): rendered but excluded from solid collision. The importer marks them non-solid; damage can be read from shader data by game code.
 
 Collision layers:
-- World/player body uses layer 1 (unchanged).
-- Weapon blocker body uses layer 8 (bit 7). Projectiles should set their collision mask to include layer 8 and exclude layer 1 so they collide with world solids but ignore `common/clip`.
+- World collision stays on layer 1.
+- PlayerClip body (only `common/clip`) is on layer 8 (bit 7). Configure players to include layer 8; configure weapon traces to exclude layer 8 so shots pass through `clip`.
 
 #### png convert
 This is only a simple example how to convert all dds textures supplied with xonotic to png.

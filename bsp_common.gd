@@ -25,49 +25,49 @@ const MST_TRIANGLE_SOUP: int = 3
 const NON_RENDER_SHADERS: PackedStringArray = [
 	"common/antiportal",    # VIS blocker, not rendered or collidable
 	"common/botclip",       # bot-only clip (ignored here)
-	"common/caulk",         # invisible, typically on hidden faces of solid brushes
-	"common/forcecaulk",    # same as caulk but structural
-	"common/clip",          # player clip volume (blocks players, lets weapons pass)
-	"common/weapclip",      # weapon clip (blocks projectiles/trace)
-	"common/donotenter",    # bot nav (ignored)
-	"common/full_clip",     # legacy; full solid clip (treated as solid)
+	"common/caulk",         # invisible; used on hidden faces. Heuristic: tends to make brush non-solid if most sides are caulk (see is_brush_collidable)
+	"common/forcecaulk",    # like caulk but structural
+	"common/clip",          # Player-only clip volume (blocks players/physics, not weapons)
+	"common/weapclip",      # Weapon clip (blocks projectiles/traces); acts solid
+	"common/weaponclip",    # Alias in some maps: same as weapclip
+	"common/donotenter",    # Bot nav (ignored)
+	"common/full_clip",     # Old name; full solid clip (acts solid)
 	"common/hint",          # VIS hint
 	"common/hintskip",      # VIS helper
-	"common/monsterclip",   # monster/NPC clip (ignored)
-	"common/nodraw",        # not drawn; usually also non-collidable
-	"common/nodrawnonsolid",# explicitly non-solid
-	"common/nodrop",        # items fall through; not drawn
-	"common/noimpact",      # prevents bullet/mark impact; visual only for us
-	"common/origin",        # origin brush for rotating entities
+	"common/monsterclip",   # Monster/NPC clip (ignored)
+	"common/nodraw",        # Not drawn; usually also non-collidable unless explicitly solid
+	"common/nodrawnonsolid",# Explicit non-solid nodraw
+	"common/nodrop",        # Items fall through; not drawn
+	"common/noimpact",      # Prevents bullet/mark impact; decals/bullets pass
+	"common/origin",        # Origin brush for rotating entities
 	"common/skip",          # VIS helper
-	"common/trigger",       # trigger volumes; handled as Area3D elsewhere
-	"common/lightgrid",     # lightgrid bounds; not rendered
-	"common/waternodraw",   # water volume without draw (liquid)
-	"common/slimenodraw",   # slime volume without draw (liquid)
-	"common/lavanodraw"     # lava volume without draw (liquid)
+	"common/trigger",       # Trigger volumes; handled as Area3D elsewhere
+	"common/lightgrid",     # Lightgrid bounds; not rendered
+	"common/waternodraw",   # Water volume without draw (liquid)
+	"common/slimenodraw",   # Slime volume without draw (liquid)
+	"common/lavanodraw"     # Lava volume without draw (liquid)
 ]
 
 const SOLID_SHADERS: PackedStringArray = [
 	# Shaders that make a brush behave solid in practice.
-	# Note: semantics differ in Q3/Xonotic; our importer uses these
-	# to judge func_* model collidability and to build collision shapes.
-	"common/clip",        # player-only clip (added to player collision only)
-	"common/weapclip",    # weapon clip (added to weapon collision; see notes)
-	"common/full_clip",   # full solid, blocks everything
-	"common/invisible"    # solid invisible surface
+	# This list feeds is_brush_collidable for func_* models and
+	# complements face-based collision in worldspawn.
+	# - common/clip: player-only solid (we put it on a separate layer)
+	# - common/weapclip/weaponclip: solid for everyone (weapons + players)
+	# - common/full_clip, common/invisible: fully solid invisible walls
+	"common/clip",
+	"common/weapclip",
+	"common/weaponclip",
+	"common/full_clip",
+	"common/invisible"
 ]
 
 # Collision classification helpers used by the importer when splitting
-# collision into separate bodies for players vs weapons.
-const PLAYER_ONLY_CLIP_SHADERS: PackedStringArray = [
-	"common/clip"
-]
-const WEAPON_CLIP_SHADERS: PackedStringArray = [
-	"common/weapclip", "common/weaponclip"
-]
-const FULL_CLIP_SHADERS: PackedStringArray = [
-	"common/full_clip", "common/invisible"
-]
+# collision into separate bodies. We create a dedicated PlayerClip body
+# that contains ONLY player-clip brushes so weapons can ignore that layer.
+const PLAYER_ONLY_CLIP_SHADERS: PackedStringArray = ["common/clip"]
+const WEAPON_CLIP_SHADERS: PackedStringArray = ["common/weapclip", "common/weaponclip"]
+const FULL_CLIP_SHADERS: PackedStringArray = ["common/full_clip", "common/invisible"]
 
 # Liquids (parsed from surfaceparms in .shader files). We attach a metadata
 # damage_per_second on the generated Area3D for these; values are approximate
