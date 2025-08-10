@@ -669,66 +669,22 @@ func load_bsp(path: String) -> Node3D:
 		if classname in TRIGGER_ENTITIES or classname in GOAL_ENTITIES:
 			var model = models[model_idx] if model_idx >= 0 and model_idx < models.size() else null
 			if model:
-				var center = (model.mins + model.maxs) / 2.0
-				node.position = center
-				# Build triangles directly from the model's faces to avoid malformed hulls
-				var faces_array = PackedVector3Array()
-				for face_idx in range(model.first_face, model.first_face + model.num_faces):
-					var face = faces[face_idx]
-					if face.surface_type not in [MST_PLANAR, MST_TRIANGLE_SOUP]:
-						continue
-					for i_idx in range(0, face.num_mv, 3):
-						var a_idx = meshverts[face.first_mv + i_idx]
-						var b_idx = meshverts[face.first_mv + i_idx + 1]
-						var c_idx = meshverts[face.first_mv + i_idx + 2]
-						var v_indices = [a_idx, b_idx, c_idx]
-						var ok := true
-						for mv_idx in v_indices:
-							if mv_idx < 0 or mv_idx >= face.num_verts:
-								ok = false
-								break
-						if not ok:
-							continue
-						var va = verts[face.first_vert + a_idx].pos
-						var vb = verts[face.first_vert + b_idx].pos
-						var vc = verts[face.first_vert + c_idx].pos
-						# Skip degenerate triangles
-						if va.distance_to(vb) <= 0.001 or vb.distance_to(vc) <= 0.001 or vc.distance_to(va) <= 0.001:
-							continue
-						faces_array.append(va)
-						faces_array.append(vb)
-						faces_array.append(vc)
-				if faces_array.size() > 0 and faces_array.size() % 3 == 0:
-					# Make local
-					var local_faces = PackedVector3Array()
-					for v in faces_array:
-						local_faces.append(v - center)
-					# Apply rotation if present
-					if ent.has("angles"):
-						var angles = parse_vector3(ent.angles)
-						var transform = Transform3D.IDENTITY
-						transform = transform.rotated(Vector3.RIGHT, deg_to_rad(angles.x))
-						transform = transform.rotated(Vector3.UP, deg_to_rad(angles.y))
-						transform = transform.rotated(Vector3.FORWARD, deg_to_rad(angles.z))
-						var rotated_faces = PackedVector3Array()
-						for v in local_faces:
-							rotated_faces.append(transform.basis * v)
-						local_faces = rotated_faces
-					# Create collision shape
+				# Build triangles from brushes in world space, mirroring worldspawn
+				var world_faces = extract_brush_vertices(model, brushes, brushsides, planes, shaders)
+				if world_faces.size() > 0 and world_faces.size() % 3 == 0:
 					var col_shape = CollisionShape3D.new()
 					var concave_shape = ConcavePolygonShape3D.new()
-					concave_shape.set_faces(local_faces)
+					concave_shape.set_faces(world_faces)
 					col_shape.shape = concave_shape
 					col_shape.name = "TriggerShape"
-					col_shape.position = Vector3.ZERO
 					node.add_child(col_shape)
 					col_shape.owner = root
-					# Create debug mesh
+					# Optional debug mesh
 					var debug_mesh = MeshInstance3D.new()
 					var debug_array_mesh = ArrayMesh.new()
 					var arr = []
 					arr.resize(Mesh.ARRAY_MAX)
-					arr[Mesh.ARRAY_VERTEX] = local_faces
+					arr[Mesh.ARRAY_VERTEX] = world_faces
 					debug_array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 					var debug_mat = StandardMaterial3D.new()
 					debug_mat.albedo_color = Color(1, 0, 0, 0.5)
@@ -736,52 +692,28 @@ func load_bsp(path: String) -> Node3D:
 					debug_array_mesh.surface_set_material(0, debug_mat)
 					debug_mesh.mesh = debug_array_mesh
 					debug_mesh.name = "DebugTriggerMesh"
-					debug_mesh.position = Vector3.ZERO
 					node.add_child(debug_mesh)
 					debug_mesh.owner = root
-					# Update AABB
-					var aabb = AABB()
-					for vtx in local_faces:
-						aabb = aabb.expand(vtx)
-					debug_array_mesh.custom_aabb = aabb
 					if debug_logging:
-						print("Added trigger shape for entity: %s with %d vertices, center: %s" % [node_name, faces_array.size(), center])
+						print("Added trigger shape for entity: %s with %d vertices (world-space)" % [node_name, world_faces.size()])
 				else:
 					if debug_logging:
-						print("No triangles found for trigger entity: %s, building concave box" % node_name)
-					# Fallback: triangulated AABB as ConcavePolygonShape3D (respects rotation)
-					var extents = (model.maxs - model.mins) / 2.0
+						print("No triangles found for trigger entity: %s, building concave AABB (world-space)" % node_name)
+					# Fallback: triangulated AABB as ConcavePolygonShape3D in world space
 					var bbox_faces = create_bounding_box_vertices(model.mins, model.maxs)
-					# Make local to center
-					var local_faces = PackedVector3Array()
-					for v in bbox_faces:
-						local_faces.append(v - center)
-					# Apply rotation from entity angles, if any
-					if ent.has("angles"):
-						var angles = parse_vector3(ent.angles)
-						var transform = Transform3D.IDENTITY
-						transform = transform.rotated(Vector3.RIGHT, deg_to_rad(angles.x))
-						transform = transform.rotated(Vector3.UP, deg_to_rad(angles.y))
-						transform = transform.rotated(Vector3.FORWARD, deg_to_rad(angles.z))
-						var rotated_faces = PackedVector3Array()
-						for v in local_faces:
-							rotated_faces.append(transform.basis * v)
-						local_faces = rotated_faces
-					# Create collision shape
 					var col_shape = CollisionShape3D.new()
 					var concave_shape = ConcavePolygonShape3D.new()
-					concave_shape.set_faces(local_faces)
+					concave_shape.set_faces(bbox_faces)
 					col_shape.shape = concave_shape
 					col_shape.name = "TriggerShape"
-					col_shape.position = Vector3.ZERO
 					node.add_child(col_shape)
 					col_shape.owner = root
-					# Debug mesh for bounding box (matches rotation)
+					# Debug mesh
 					var debug_mesh = MeshInstance3D.new()
 					var debug_array_mesh = ArrayMesh.new()
 					var arr = []
 					arr.resize(Mesh.ARRAY_MAX)
-					arr[Mesh.ARRAY_VERTEX] = local_faces
+					arr[Mesh.ARRAY_VERTEX] = bbox_faces
 					debug_array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 					var debug_mat = StandardMaterial3D.new()
 					debug_mat.albedo_color = Color(1, 0, 0, 0.5)
@@ -789,11 +721,8 @@ func load_bsp(path: String) -> Node3D:
 					debug_array_mesh.surface_set_material(0, debug_mat)
 					debug_mesh.mesh = debug_array_mesh
 					debug_mesh.name = "DebugTriggerMesh"
-					debug_mesh.position = Vector3.ZERO
 					node.add_child(debug_mesh)
 					debug_mesh.owner = root
-					if debug_logging:
-						print("Added concave AABB trigger for entity: %s, extents: %s" % [node_name, extents])
 			else:
 				if debug_logging:
 					print("No model found for trigger entity: %s" % node_name)

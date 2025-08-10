@@ -39,7 +39,7 @@ Logos on walls have the text mirrored and one logo is pink now in boil.bsp. Howe
 
 Trims (small partial textures on walls) seem vertically compressed.
 
-Trigger volumes: fixed. Triggers now build their `ConcavePolygonShape3D` directly from the submodel’s triangulated faces (instead of ad-hoc plane hulls), so boxes and ramps match the BSP exactly and no longer appear twisted or malformed.
+Trigger volumes: fixed again. Triggers now mirror worldspawn: build a single `ConcavePolygonShape3D` from the submodel’s brush data in WORLD SPACE (no re-centering, no extra rotation). This removes the “unrotated box pointing away” bug on 45° doorway triggers and matches BSP exactly.
 
 - Skybox renders in editor (cubemap from `env/` textures via shader `skyParms`). Could be upgraded later to WorldEnvironment sky.
 - I don't think there is md3 and iqm model support yet, please implement (animations not required at first) - use quadot as reference
@@ -86,6 +86,7 @@ rm assets/boil_delme_*
   - `trigger_entity.gd` now extends `Area3D` (was `StaticBody3D`), fixing the base-class mismatch when attaching the script to trigger nodes.
   - Moved trigger shape construction out of the `info_player` block in `bsp_loader.gd` so triggers get their `ConcavePolygonShape3D` built regardless of player spawns. Centers shapes at the submodel AABB center and applies entity `angles` consistently.
 
-- Fix: Trigger fallback box shape unrotated
-  - Removed `BoxShape3D` fallback for triggers. When a submodel has no triangulated faces, the AABB is triangulated and fed to a `ConcavePolygonShape3D` instead.
-  - The fallback concave AABB is built in local space and rotated by entity `angles`, so 45° doorway triggers align correctly instead of appearing as axis-aligned boxes pointing away from the door.
+- Fix: Trigger concave generation and fallback
+  - Use `extract_brush_vertices(...)` to triangulate each trigger/goal submodel into world-space triangles (same path as func_* interaction shapes).
+  - Removed center-offset and angle-rotation of trigger vertices; vertices are already oriented in BSP space.
+  - Fallback still triangulates AABB, but now also stays in world space (no misleading rotation), so it at least covers the right volume.
