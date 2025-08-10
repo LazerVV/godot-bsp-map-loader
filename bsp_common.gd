@@ -22,6 +22,25 @@ const MST_PLANAR: int = 1
 const MST_PATCH: int = 2
 const MST_TRIANGLE_SOUP: int = 3
 
+## Special shader semantics (Xonotic/Quake3 style)
+##
+## - common/clip: Player-only clip. We build a separate ConcavePolygonShape3D on layer 8
+##   so weapon traces can ignore it while the player collides with it.
+## - common/weapclip (weaponclip): Weapon clip; acts like a normal solid wall for both
+##   players and weapon traces. Merged into the main world collision.
+## - common/full_clip: Legacy name for fully solid invisible walls. Treated as solid.
+## - common/invisible: Invisible but solid. Treated as solid and rendered as transparent.
+## - common/caulk, forcecaulk, nodraw: Helper, not rendered; if a brush has a majority of
+##   these across its sides, the whole brush becomes non-collidable (majority-of-sides rule).
+## - Liquids: surfaceparm water/slime/lava in shader files mark a brush as a pass-through
+##   liquid volume. We create Area3D volumes (no solid collision) and attach metadata:
+##   { liquid_type: water|slime|lava, damage_per_second } using LIQUID_DEFAULT_DPS.
+##
+## Majority-of-sides collidability:
+## - For func_* brush models and worldspawn collision, a brush is classified by counting
+##   the shader categories across its sides. The majority determines behavior:
+##   clip -> PlayerClip; weapclip/weaponclip/full_clip -> Solid; caulk/nodraw -> Non-solid;
+##   water/slime/lava -> Liquid volume. Otherwise falls back to Solid.
 const NON_RENDER_SHADERS: PackedStringArray = [
 	"common/antiportal",    # VIS blocker, not rendered or collidable
 	"common/botclip",       # bot-only clip (ignored here)

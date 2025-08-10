@@ -30,7 +30,10 @@ What also never worked right was when triggers were assymetrical and rotated. It
 - common/weapclip (weaponclip): weapon clip. Not rendered. Treated as solid wall; merged into main world collision so both players and traces hit it.
 - common/full_clip: legacy, fully solid invisible wall. Merged into main world collision.
 - common/invisible: invisible solid surface. Kept solid in collision; uses a transparent material to avoid artifacts.
-- Liquids (surfaceparm water/slime/lava): rendered but excluded from solid collision. The importer marks them non-solid; damage can be read from shader data by game code.
+- Liquids (surfaceparm water/slime/lava): rendered but excluded from solid collision. The importer creates Area3D volumes (no solid collision) and tags them with metadata `liquid_type` and `damage_per_second` (defaults; tune in game code).
+
+Majority-of-sides rule:
+- Brush collidability is decided per brush by counting its side shaders. The majority category wins (e.g., 4 clip + 2 normal => the brush is PlayerClip; mostly caulk/nodraw => non-collidable).
 
 Collision layers:
 - World collision stays on layer 1.
