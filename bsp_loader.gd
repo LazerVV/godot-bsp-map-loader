@@ -669,8 +669,9 @@ func load_bsp(path: String) -> Node3D:
 		if classname in TRIGGER_ENTITIES or classname in GOAL_ENTITIES:
 			var model = models[model_idx] if model_idx >= 0 and model_idx < models.size() else null
 			if model:
-				# Build triangles from brushes in world space, mirroring worldspawn
-				var world_faces = extract_brush_vertices(model, brushes, brushsides, planes, shaders)
+				# Build triangles from the submodel's faces in world space,
+				# exactly like worldspawn does, without filtering non-render shaders.
+				var world_faces = collect_model_face_triangles_world(model, faces, verts, meshverts, shaders, texture_loader)
 				if world_faces.size() > 0 and world_faces.size() % 3 == 0:
 					var col_shape = CollisionShape3D.new()
 					var concave_shape = ConcavePolygonShape3D.new()
@@ -1124,3 +1125,41 @@ func create_bounding_box_vertices(mins: Vector3, maxs: Vector3) -> PackedVector3
 	for i in indices:
 		vertices.append(corners[i])
 	return vertices
+
+# Collect triangles from a submodel's faces in WORLD SPACE, mirroring worldspawn
+func collect_model_face_triangles_world(model: Dictionary, faces: Array[Dictionary], verts: Array[Dictionary], meshverts: PackedInt32Array, shaders: Array[Dictionary], texture_loader) -> PackedVector3Array:
+	var tris := PackedVector3Array()
+	for face_idx in range(model.first_face, model.first_face + model.num_faces):
+		var face = faces[face_idx]
+		if face.surface_type not in [MST_PLANAR, MST_TRIANGLE_SOUP]:
+			continue
+		var sh_name := ""
+		if face.shader_num >= 0 and face.shader_num < shaders.size():
+			sh_name = shaders[face.shader_num]["name"]
+		# Never include sky surfaces
+		if sh_name != "" and texture_loader.has_skybox(sh_name):
+			continue
+		for i_idx in range(0, face.num_mv, 3):
+			var a_idx = meshverts[face.first_mv + i_idx]
+			var b_idx = meshverts[face.first_mv + i_idx + 1]
+			var c_idx = meshverts[face.first_mv + i_idx + 2]
+			if a_idx < 0 or b_idx < 0 or c_idx < 0:
+				continue
+			if a_idx >= face.num_verts or b_idx >= face.num_verts or c_idx >= face.num_verts:
+				continue
+			var va = face.first_vert + a_idx
+			var vb = face.first_vert + b_idx
+			var vc = face.first_vert + c_idx
+			if va < 0 or vb < 0 or vc < 0:
+				continue
+			if va >= verts.size() or vb >= verts.size() or vc >= verts.size():
+				continue
+			var p0: Vector3 = verts[va].pos
+			var p1: Vector3 = verts[vb].pos
+			var p2: Vector3 = verts[vc].pos
+			if p0.distance_to(p1) <= 0.001 or p1.distance_to(p2) <= 0.001 or p2.distance_to(p0) <= 0.001:
+				continue
+			tris.append(p0)
+			tris.append(p1)
+			tris.append(p2)
+	return tris

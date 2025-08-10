@@ -39,7 +39,7 @@ Logos on walls have the text mirrored and one logo is pink now in boil.bsp. Howe
 
 Trims (small partial textures on walls) seem vertically compressed.
 
-Trigger volumes: fixed again. Triggers now mirror worldspawn: build a single `ConcavePolygonShape3D` from the submodel’s brush data in WORLD SPACE (no re-centering, no extra rotation). This removes the “unrotated box pointing away” bug on 45° doorway triggers and matches BSP exactly.
+Trigger volumes: fixed again. Triggers now mirror worldspawn by collecting triangles directly from the submodel’s faces (`MST_PLANAR`/`MST_TRIANGLE_SOUP`) in WORLD SPACE and feeding them to a single `ConcavePolygonShape3D` (no re-centering, no rotation). This replaces the previous plane-intersection/"convex hull" path that produced malformed, axis-aligned boxes and missing triangles.
 
 - Skybox renders in editor (cubemap from `env/` textures via shader `skyParms`). Could be upgraded later to WorldEnvironment sky.
 - I don't think there is md3 and iqm model support yet, please implement (animations not required at first) - use quadot as reference
@@ -80,7 +80,7 @@ rm assets/boil_delme_*
   - Adjusted UV mapping in `bsp_loader.gd` for `ft` and `bk` faces (rotate 90° CW) so Quake3 `env/<name>_ft/_bk` align with neighboring faces. Top/bottom were already correct.
 
 - Fix: Trigger shapes malformed
-  - For trigger/goal entities, build triangles from the model’s faces (`MST_PLANAR`/`MST_TRIANGLE_SOUP`) and feed them to a `ConcavePolygonShape3D` with a matching debug mesh. This replaces the previous plane-intersection + naive “fan” triangulation that produced twisted volumes.
+  - New helper `collect_model_face_triangles_world(...)` extracts world-space triangles from submodel faces, skipping only sky surfaces. Trigger/goal entities now use this, so rotated (e.g., 45° doorway) triggers match BSP exactly and are fully enclosed.
 
 - Fix: Trigger import errors and placement
   - `trigger_entity.gd` now extends `Area3D` (was `StaticBody3D`), fixing the base-class mismatch when attaching the script to trigger nodes.
