@@ -120,3 +120,19 @@ rm assets/test_delme_*
 Notes
 - Do not revert to per-face convex hulls; they were the source of triangle “X” artifacts. If a brush has no renderable faces (e.g., pure `clip`), triangulate via planes.
 - The separate `PlayerClip` body is the only special collision layer; there is no dedicated “Weaponblocker” body anymore.
+
+Runtime Note (Aug 10, 2025)
+- Gray screen on running the test scene was caused by a non-default camera `cull_mask` in the Xonotic character controller. This has been removed so the ViewCamera renders all visual layers by default. See `addons/xonotic_character_controller/AGENTS.md` for details.
+
+- Shader: Parser improvements and base-texture selection
+  - Proper stage parsing: track stage blocks without duplicate entries; store map/clampmap/animMap; record alpha/blend.
+  - Shader-level keys: parse `qer_editorimage`, robust `cull` (none/disable/twosided), `surfaceparm` and existing `skyParms`.
+  - Texture choice: prefer `qer_editorimage`, then first non-$lightmap stage map; exact path lookup under `textures/` avoids picking normal maps as base.
+  - Blend mapping: support `blendFunc blend/add` and `GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA` to set Godot transparency.
+  - Fallback unchanged: still uses `match_texture_no_one_is_allowed_to_modify_this_function` for aux maps (_norm/_glow/etc) only.
+
+- Shader: Parser made whitespace- and brace-robust; basic tcMod
+  - Tokenization now tolerates tabs and mixed whitespace; handles lines like `textures/foo/bar {` so top-level shader braces don’t get missed.
+  - Stage parsing recognizes `tcMod scale/scroll/transform/rotate` and records them in-order.
+  - Material UVs: applies simple `tcMod` preview to base stage (scale, pure transform without shear/rotation) via `uv1_scale/uv1_offset`. This reduces vertically compressed trims and fixes logos that rely on negative scales for mirroring.
+  - `qer_editorimage` supports quoted paths and mixed spacing. Inline `//` comments are stripped reliably.

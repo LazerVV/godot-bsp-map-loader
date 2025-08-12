@@ -11,6 +11,30 @@ var non_solid_shaders: Array[String] = []
 var shader_data: Dictionary = {} # Global shader definitions
 var debug_logging: bool = false # Control verbosity of logging
 
+static func _strip_inline_comment(line: String) -> String:
+	var comment_pos = line.find("//")
+	if comment_pos >= 0:
+		return line.substr(0, comment_pos)
+	return line
+
+static func _normalize_line(line: String) -> String:
+	# Remove inline comments and normalize whitespace while isolating braces
+	var s = _strip_inline_comment(line)
+	# Replace tabs and carriage returns with spaces
+	s = s.replace("\t", " ").replace("\r", "")
+	# Isolate braces so we can detect them reliably
+	s = s.replace("{", " { ").replace("}", " } ")
+	# Collapse multiple spaces
+	while s.find("  ") != -1:
+		s = s.replace("  ", " ")
+	return s.strip_edges()
+
+static func _tokenize_ws(line: String) -> Array[String]:
+	var s = _normalize_line(line)
+	if s == "":
+		return []
+	return s.split(" ", false)
+
 func load_all_shader_files() -> void:
 	var scripts_dir = "/workspace/XONOTIC_DATA/scripts/"
 	var dir = DirAccess.open(scripts_dir)
@@ -49,6 +73,7 @@ func parse_shader_file(path: String) -> Dictionary:
 	var file = FileAccess.open(path, FileAccess.READ)
 	var current_shader: String = ""
 	var current_block: Dictionary = {}
+	var current_stage: Dictionary = {}
 	var in_shader: bool = false
 	var in_stage: bool = false
 	var brace_level: int = 0
@@ -56,68 +81,138 @@ func parse_shader_file(path: String) -> Dictionary:
 	while not file.eof_reached():
 		var raw_line = file.get_line()
 		var line = raw_line.strip_edges()
-		var lower_line = line.to_lower()
-		if line.begins_with("//") or line == "":
+		var norm = _normalize_line(line)
+		if norm == "" or norm.begins_with("//"):
 			continue
-		if line.begins_with("textures/"):
-			current_shader = line.replace("textures/", "")
-			current_block = {"surfaceparms": [], "stages": [], "cull": "", "sky_env": ""}
+		var lower_line = norm.to_lower()
+		# Detect shader header (also handles "textures/foo {" on one line)
+		if lower_line.begins_with("textures/") and not in_shader:
+			var name_part = norm
+			if name_part.find("{") != -1:
+				name_part = name_part.get_slice("{", 0)
+			current_shader = name_part.strip_edges().replace("textures/", "")
+			current_block = {"surfaceparms": [], "stages": [], "cull": "", "sky_env": "", "qer_editorimage": ""}
 			file_data[current_shader] = current_block
 			in_shader = true
 			brace_level = 0
 			in_stage = false
+			current_stage = {}
+			# If the line also opened the block, count it
+			if norm.find("{") != -1:
+				brace_level += 1
 			continue
 		if in_shader:
-			if line == "{":
+			# Brace tracking (support braces on lines with tokens)
+			if norm == "{" or norm.ends_with(" {") or norm.begins_with("{ "):
 				brace_level += 1
 				if brace_level == 2:
-					# Entering a stage block
 					in_stage = true
-					current_block["stages"].append({})
+					current_stage = {}
 				continue
-			if line == "}":
+			if norm == "}" or norm.ends_with(" }") or norm.begins_with("} "):
 				if brace_level == 2 and in_stage:
-					# Leaving a stage block
+					# End of stage
 					in_stage = false
+					if not current_stage.is_empty():
+						current_block["stages"].append(current_stage)
+					current_stage = {}
 				elif brace_level == 1:
-					# Leaving shader block
+					# End of shader
 					in_shader = false
 					if debug_logging:
 						print("Parsed shader %s: %s" % [current_shader, current_block])
 				brace_level = max(0, brace_level - 1)
 				continue
 			if in_stage:
-				var parts = line.split(" ", false)
-				if parts.size() > 0:
-					var key = String(parts[0]).to_lower()
-					if key in ["map", "blendfunc", "alphafunc"]:
-						var stage = {}
-						if key == "map":
-							stage["map"] = parts[1].replace("textures/", "") if parts.size() > 1 else ""
-						elif key == "blendfunc":
-							if parts.size() == 2 and parts[1] == "blend":
-								stage["blendFunc"] = ["GL_SRC_ALPHA", "GL_ONE_MINUS_SRC_ALPHA"]
-							elif parts.size() > 2:
-								stage["blendFunc"] = parts.slice(1)
-						elif key == "alphafunc":
-							stage["alphaFunc"] = parts[1] if parts.size() > 1 else ""
-						if stage:
-							current_block["stages"].append(stage)
+				var parts: Array[String] = _tokenize_ws(norm)
+				if parts.size() == 0:
+					continue
+				var key = String(parts[0]).to_lower()
+				match key:
+					"map":
+						# map <texture> | $lightmap
+						if parts.size() > 1:
+							var m = parts[1].strip_edges().trim_prefix("textures/")
+							current_stage["map"] = m
+					"clampmap":
+						if parts.size() > 1:
+							var cm = parts[1].strip_edges().trim_prefix("textures/")
+							current_stage["map"] = cm
+							current_stage["clamp"] = true
+					"animmap":
+						# animMap <freq> <tex1> <tex2> ...
+						if parts.size() > 2:
+							var freq = parts[1]
+							var frames: Array = []
+							for i in range(2, parts.size()):
+								frames.append(parts[i].strip_edges().trim_prefix("textures/"))
+							current_stage["animMap"] = {"freq": freq, "frames": frames}
+							if frames.size() > 0 and not current_stage.has("map"):
+								current_stage["map"] = frames[0]
+					"blendfunc":
+						# blendFunc <src> <dst> | add | filter | blend
+						if parts.size() == 2:
+							current_stage["blendFunc"] = parts[1].to_lower()
+						elif parts.size() >= 3:
+							current_stage["blendFunc"] = [parts[1], parts[2]]
+					"alphafunc":
+						if parts.size() > 1:
+							current_stage["alphaFunc"] = parts[1].to_upper()
+					"tcmod":
+						# Collect tcMod operations in order for simple preview transforms
+						if parts.size() >= 2:
+							var op = parts[1].to_lower()
+							var tcmods = current_stage.get("tcmods", [])
+							match op:
+								"scale":
+									if parts.size() >= 4:
+										tcmods.append({"op": "scale", "sx": float(parts[2]), "sy": float(parts[3])})
+								"scroll":
+									if parts.size() >= 4:
+										tcmods.append({"op": "scroll", "ux": float(parts[2]), "uy": float(parts[3])})
+								"rotate":
+									if parts.size() >= 3:
+										tcmods.append({"op": "rotate", "deg": float(parts[2])})
+								"transform":
+									if parts.size() >= 8:
+										tcmods.append({
+											"op": "transform",
+											"a": float(parts[2]), "b": float(parts[3]), "c": float(parts[4]),
+											"d": float(parts[5]), "e": float(parts[6]), "f": float(parts[7])
+										})
+							_:
+								pass
+						current_stage["tcmods"] = tcmods
+					_:
+						pass
 			else:
 				# Shader-level directives
 				if lower_line.begins_with("surfaceparm"):
-					var tokens = line.split(" ")
+					var tokens = _tokenize_ws(norm)
 					var parm = tokens[1] if tokens.size() > 1 else ""
+					parm = String(parm).to_lower()
 					current_block["surfaceparms"].append(parm)
 					if parm == "nonsolid":
 						non_solid_shaders.append(current_shader)
+				elif lower_line.begins_with("qer_editorimage"):
+					var tokens2 = _tokenize_ws(norm)
+					if tokens2.size() > 1:
+						var qei = tokens2[1].strip_edges().trim_prefix("textures/").trim_prefix("\"").trim_suffix("\"")
+						current_block["qer_editorimage"] = qei
 				elif lower_line.begins_with("skyparms"):
 					# Format: skyParms env/<name> [cloudheight] [outerbox] [innerbox]
-					var sky_parts = line.split(" ", false)
-					if sky_parts.size() >= 2 and sky_parts[1].begins_with("env/"):
-						current_block["sky_env"] = sky_parts[1].replace("env/", "").strip_edges()
-				elif lower_line == "cull none":
-					current_block["cull"] = "none"
+					var sky_parts = _tokenize_ws(norm)
+					if sky_parts.size() >= 2 and String(sky_parts[1]).begins_with("env/"):
+						current_block["sky_env"] = String(sky_parts[1]).replace("env/", "").strip_edges()
+				elif lower_line.begins_with("cull"):
+					# Accept: cull none|disable|twosided|back|front
+					var c = _tokenize_ws(norm)
+					if c.size() > 1:
+						var v = String(c[1]).to_lower()
+						if v in ["none", "disable", "twosided"]:
+							current_block["cull"] = "none"
+						else:
+							current_block["cull"] = v
 	file.close()
 	return file_data
 
@@ -167,23 +262,34 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 	var special_keywords: Array[String] = ["$lightmap", "$whiteimage", "$blackimage"]
 	for sh in used_shaders:
 		var shader_name = sh["name"]
-		var tex_name = shader_name
+		var chosen_rel: String = ""
 		var map_texture = ""
-		if shader_data.has(shader_name) and shader_data[shader_name].has("stages"):
+		# 1) Prefer qer_editorimage when present
+		if shader_data.has(shader_name) and shader_data[shader_name].has("qer_editorimage") and String(shader_data[shader_name]["qer_editorimage"]) != "":
+			chosen_rel = String(shader_data[shader_name]["qer_editorimage"]).trim_prefix("textures/")
+		# 2) Else first non-$lightmap stage map/clampmap/animmap frame
+		if chosen_rel == "" and shader_data.has(shader_name) and shader_data[shader_name].has("stages"):
 			if debug_logging:
 				print("Shader stages for %s: %s" % [shader_name, shader_data[shader_name]["stages"]])
 			for stage in shader_data[shader_name]["stages"]:
 				if stage.has("map") and stage["map"] and stage["map"] not in special_keywords:
-					map_texture = String(stage["map"]).get_basename()
-					tex_name = map_texture
+					map_texture = String(stage["map"]).replace("textures/", "")
+					chosen_rel = map_texture
 					break
-		if not map_texture or map_texture in special_keywords:
-			tex_name = shader_name
-		var matched_textures = match_texture_no_one_is_allowed_to_modify_this_function(tex_name, suffixes)
-		if map_texture and not matched_textures.has(""):
-			matched_textures = match_texture_no_one_is_allowed_to_modify_this_function(shader_name, suffixes)
+		# 3) Build matches: start with an exact-path search when we know the rel path
+		var matched_textures: Dictionary = {}
+		if chosen_rel != "":
+			var found = find_texture_exact_rel(chosen_rel)
+			if found != "":
+				matched_textures[""] = found
+		# 4) Merge with fallback heuristic to gather aux maps (_norm, _glow, ...)
+		var fallback_try = shader_name if chosen_rel == "" else chosen_rel.get_file()
+		var ht = match_texture_no_one_is_allowed_to_modify_this_function(fallback_try, suffixes)
+		for k in ht.keys():
+			if not matched_textures.has(k):
+				matched_textures[k] = ht[k]
 		if debug_logging:
-			print("MATCHED TEXTURES for %s (tried %s): %s" % [shader_name, tex_name, matched_textures])
+			print("MATCHED TEXTURES for %s (rel=%s): %s" % [shader_name, chosen_rel, matched_textures])
 		for suffix in matched_textures:
 			var tex_key = shader_name + suffix
 			var dst = "res://assets/textures/" + shader_name + suffix + ".png"
@@ -213,6 +319,9 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 						if suffix == "":
 							texture_cache["textures"][shader_name] = ImageTexture.create_from_image(img)
 						texture_cache["textures"][tex_key] = ImageTexture.create_from_image(img)
+						# Also alias by basename to support later lookups
+						var base_alias = shader_name.get_file()
+						texture_cache["textures"][base_alias + suffix] = ImageTexture.create_from_image(img)
 						if debug_logging:
 							print("Extracted and saved texture: %s" % dst)
 					else:
@@ -232,6 +341,8 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 						if suffix == "":
 							texture_cache["textures"][shader_name] = ImageTexture.create_from_image(img)
 						texture_cache["textures"][tex_key] = ImageTexture.create_from_image(img)
+						var base_alias2 = shader_name.get_file()
+						texture_cache["textures"][base_alias2 + suffix] = ImageTexture.create_from_image(img)
 						if debug_logging:
 							print("Loaded and saved texture: %s" % dst)
 					else:
@@ -244,6 +355,28 @@ func load_textures(shaders: Array[Dictionary], faces: Array[Dictionary]) -> Dict
 	if debug_logging:
 		print("TEXTURE CACHE KEYS: %s" % texture_cache["textures"].keys())
 	return texture_cache
+
+func find_texture_exact_rel(rel: String) -> String:
+	# Accept inputs like: "foo/bar", "foo/bar.tga", or "textures/foo/bar(.ext)"
+	var rel_clean = rel.strip_edges().trim_prefix("textures/")
+	var rel_no_ext = rel_clean
+	if rel_no_ext.get_extension() != "":
+		rel_no_ext = rel_no_ext.get_basename()
+	# Build regex to find exact path under textures/
+	var regex = RegEx.new()
+	# Prefer later matches (later pk3s / later files)
+	var found_path := ""
+	for ext in valid_extensions:
+		var pattern = "(?i).*/textures/" + escape_regex(rel_no_ext) + "\\." + ext + "\\s*(\\n|\\z)"
+		if regex.compile(pattern) != OK:
+			continue
+		var results = regex.search_all(cached_texture_string)
+		if results and results.size() > 0:
+			# Use the last entry which represents the highest-priority pack by our scan order
+			var cleaned = results[results.size() - 1].get_string().strip_edges()
+			found_path = cleaned
+	# Return either a filesystem path or zip:path if found
+	return found_path
 
 func scan_textures(required_folders: Array[String]) -> void:
 	cached_texture_string = ""
@@ -438,10 +571,12 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 		var mat = StandardMaterial3D.new()
 		mat.resource_name = sh_name # Set material name to shader name
 		var found_base = false
+		var applied_base_file: String = ""
 		# Try shader name first
 		var tex_key = sh_name
 		if texture_cache["textures"].has(tex_key):
 			mat.albedo_texture = texture_cache["textures"][tex_key]
+			applied_base_file = tex_key.get_file()
 			var img = texture_cache["textures"][tex_key].get_image()
 			if img and img.detect_alpha() != Image.ALPHA_NONE:
 				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -452,24 +587,27 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 			found_base = true
 			if debug_logging:
 				print("Applied texture %s to material %s" % [tex_key, sh_name])
-		# Fallback to map directive
-		if not found_base and shader_data.has(sh_name) and shader_data[sh_name].has("stages"):
-			for stage in shader_data[sh_name]["stages"]:
-				if stage.has("map") and stage["map"] and not stage["map"].begins_with("$"):
-					var map_name = String(stage["map"]).get_basename()
-					if texture_cache["textures"].has(map_name):
-						mat.albedo_texture = texture_cache["textures"][map_name]
-						var img = texture_cache["textures"][map_name].get_image()
-						if img and img.detect_alpha() != Image.ALPHA_NONE:
-							mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-							mat.alpha_scissor_threshold = 0.5
-						else:
-							if debug_logging:
-								print("Warning: Texture %s for material %s has no alpha channel" % [map_name, sh_name])
-						found_base = true
-						if debug_logging:
-							print("Applied map texture %s to material %s (from map %s)" % [map_name, sh_name, stage["map"]])
-						break
+		# Fallback to qer_editorimage or first stage map
+		if not found_base and shader_data.has(sh_name):
+			var base_keys: Array[String] = []
+			if shader_data[sh_name].has("qer_editorimage") and String(shader_data[sh_name]["qer_editorimage"]) != "":
+				base_keys.append(String(shader_data[sh_name]["qer_editorimage"]).get_file())
+			if shader_data[sh_name].has("stages"):
+				for stage in shader_data[sh_name]["stages"]:
+					if stage.has("map") and stage["map"] and not String(stage["map"]).begins_with("$"):
+						base_keys.append(String(stage["map"]).get_file())
+			for key in base_keys:
+				if texture_cache["textures"].has(key):
+					mat.albedo_texture = texture_cache["textures"][key]
+					applied_base_file = key
+					var img2 = texture_cache["textures"][key].get_image()
+					if img2 and img2.detect_alpha() != Image.ALPHA_NONE:
+						mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+						mat.alpha_scissor_threshold = 0.5
+					found_base = true
+					if debug_logging:
+						print("Applied fallback base texture %s to %s" % [key, sh_name])
+					break
 		if not found_base and sh_name == "common/invisible":
 			var invisible_path = "res://assets/textures/common/invisible.tga"
 			if FileAccess.file_exists(invisible_path):
@@ -517,13 +655,66 @@ func create_materials(shaders: Array[Dictionary], texture_cache: Dictionary) -> 
 		# Apply shader properties
 		if shader_data.has(sh_name):
 			var sh_data = shader_data[sh_name]
+			# Try to apply simple tcMod transforms from the stage that supplied the base map
+			if sh_data.has("stages") and mat.albedo_texture:
+				var chosen_stage: Dictionary = {}
+				var base_name := applied_base_file
+				# Find first suitable stage if name probe fails
+				for stage in sh_data["stages"]:
+					if stage.has("map") and stage["map"] and not String(stage["map"]).begins_with("$"):
+						if chosen_stage.is_empty():
+							chosen_stage = stage
+						# Prefer exact rel-path match
+						if base_name != "" and (String(stage["map"]).get_file() == base_name or String(stage["map"]).ends_with("/" + base_name)):
+							chosen_stage = stage
+							break
+				if not chosen_stage.is_empty() and chosen_stage.has("tcmods"):
+					var uv_scale = Vector3(1, 1, 1)
+					var uv_offset = Vector3(0, 0, 0)
+					for t in chosen_stage["tcmods"]:
+						match t["op"]:
+							"scale":
+								uv_scale.x *= t["sx"]
+								uv_scale.y *= t["sy"]
+							"scroll":
+								# Static preview: ignore time-based scroll; keep offset at 0
+								pass
+							"transform":
+								# Only apply pure scale/translate (no shear/rotate)
+								if is_equal_approx(t["b"], 0.0) and is_equal_approx(t["d"], 0.0):
+									uv_scale.x *= t["a"]
+									uv_scale.y *= t["e"]
+									uv_offset.x += t["c"]
+									uv_offset.y += t["f"]
+							else:
+								pass
+						_:
+							pass
+					mat.uv1_scale = uv_scale
+					mat.uv1_offset = uv_offset
 			if sh_data.has("stages"):
 				for stage in sh_data["stages"]:
-					if stage.has("blendFunc") and stage["blendFunc"] in ["GL_SRC_ALPHA", "GL_ONE_MINUS_SRC_ALPHA"]:
-						mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-						mat.alpha_scissor_threshold = 0.5
-						if debug_logging:
-							print("Applied alpha blending for material %s" % sh_name)
+					if stage.has("blendFunc"):
+						var bf = stage["blendFunc"]
+						var set_alpha := false
+						if typeof(bf) == TYPE_ARRAY and bf.size() >= 2:
+							var src = String(bf[0]).to_upper()
+							var dst = String(bf[1]).to_upper()
+							if src == "GL_SRC_ALPHA" and dst == "GL_ONE_MINUS_SRC_ALPHA":
+								mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+								set_alpha = true
+						elif typeof(bf) == TYPE_STRING:
+							var mode = String(bf).to_lower()
+							if mode == "blend":
+								mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+								set_alpha = true
+							elif mode == "add":
+								mat.transparency = BaseMaterial3D.TRANSPARENCY_ADD
+								set_alpha = true
+						if set_alpha:
+							mat.alpha_scissor_threshold = 0.5
+							if debug_logging:
+								print("Applied blendFunc for %s -> %s" % [sh_name, str(bf)])
 					if stage.has("alphaFunc") and stage["alphaFunc"] == "GE128":
 						mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 						mat.alpha_scissor_threshold = 0.5
